@@ -19,6 +19,7 @@ export default function AdminLayout({
           <Link href="/admin/orders" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>الطلبات الواردة</Link>
           <Link href="/admin/products" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>إدارة المنتجات</Link>
           <Link href="/admin/reviews" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>إدارة التقييمات</Link>
+          <Link href="/admin/coupons" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>أكواد الخصم</Link>
           <Link href="/" className={styles.navLink} style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             العودة للمتجر
           </Link>

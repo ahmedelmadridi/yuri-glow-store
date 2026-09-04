@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
 import { sendTelegramNotification } from '@/app/actions/telegram';
+import { validateCoupon } from '@/app/actions/coupons';
 import styles from './page.module.css';
 
 export default function CheckoutPage() {
@@ -19,6 +20,11 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{code: string, discount: number} | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -48,13 +54,34 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleApplyCoupon = async () => {
+    setCouponError('');
+    if (!couponCode.trim()) return;
+    
+    setIsCheckingCoupon(true);
+    const result = await validateCoupon(couponCode);
+    setIsCheckingCoupon(false);
+    
+    if (result.error) {
+      setCouponError(result.error);
+      setAppliedCoupon(null);
+    } else {
+      setAppliedCoupon({ code: result.code!, discount: result.discount! });
+      setCouponCode('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg('');
     
     // Parse total to int for safety
-    const subtotal = totalPrice;
+    let subtotal = totalPrice;
+    if (appliedCoupon) {
+      subtotal = Math.round(subtotal - (subtotal * (appliedCoupon.discount / 100)));
+    }
+    
     const shipping = shippingCost;
     const finalTotal = subtotal + shipping;
 
@@ -69,7 +96,7 @@ export default function CheckoutPage() {
         phone: formData.phone,
         governorate: selectedGov,
         address: formData.address,
-        notes: formData.notes,
+        notes: formData.notes + (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : ''),
         subtotal_amount: subtotal,
         shipping_cost: shipping,
         total_amount: finalTotal,
@@ -110,6 +137,7 @@ export default function CheckoutPage() {
 📍 <b>المحافظة:</b> ${selectedGov}
 🏠 <b>العنوان:</b> ${formData.address}
 📝 <b>ملاحظات:</b> ${formData.notes || 'لا يوجد'}
+🎟️ <b>كود الخصم:</b> ${appliedCoupon ? `${appliedCoupon.code} (${appliedCoupon.discount}%)` : 'لا يوجد'}
 
 🛍️ <b>المنتجات:</b>
 ${orderItemsText}
@@ -184,10 +212,68 @@ ${orderItemsText}
           
           <hr className={styles.divider} />
           
+          <div style={{ marginBottom: 'var(--spacing-md)' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>هل لديك كود خصم؟</label>
+            {!appliedCoupon ? (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={couponCode} 
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="أدخل الكود هنا"
+                  style={{ flex: '1', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                  dir="ltr"
+                />
+                <button 
+                  type="button" 
+                  onClick={handleApplyCoupon}
+                  disabled={isCheckingCoupon || !couponCode.trim()}
+                  style={{ 
+                    backgroundColor: 'var(--color-secondary)', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '0 16px', 
+                    borderRadius: '4px', 
+                    cursor: (isCheckingCoupon || !couponCode.trim()) ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold',
+                    opacity: (isCheckingCoupon || !couponCode.trim()) ? 0.7 : 1
+                  }}
+                >
+                  {isCheckingCoupon ? '...' : 'تطبيق'}
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#e8f8f5', padding: '10px', borderRadius: '4px', color: '#27ae60' }}>
+                <div>
+                  <strong>تم تفعيل الخصم!</strong> ({appliedCoupon.code})
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setAppliedCoupon(null)}
+                  style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  إلغاء
+                </button>
+              </div>
+            )}
+            {couponError && <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>{couponError}</div>}
+          </div>
+
+          <hr className={styles.divider} />
+          
           <div className={styles.summaryRow}>
             <span>المجموع الفرعي</span>
-            <span>{formatPrice(totalPrice)}</span>
+            <span style={{ textDecoration: appliedCoupon ? 'line-through' : 'none', color: appliedCoupon ? '#999' : 'inherit' }}>
+              {formatPrice(totalPrice)}
+            </span>
           </div>
+          
+          {appliedCoupon && (
+            <div className={styles.summaryRow} style={{ color: '#27ae60' }}>
+              <span>بعد الخصم ({appliedCoupon.discount}%)</span>
+              <span>{formatPrice(Math.round(totalPrice - (totalPrice * (appliedCoupon.discount / 100))))}</span>
+            </div>
+          )}
           <div className={styles.summaryRow}>
             <span>الشحن ({selectedGov})</span>
             <span>{formatPrice(shippingCost)}</span>
