@@ -39,8 +39,8 @@ export default function RootLayout({
               <Link href="/contact" style={{ color: 'white', textDecoration: 'none' }}>اتصل بنا</Link>
             </div>
 
-            <div>
-              <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--color-primary)' }}>Yuri Glow</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <img src="/logo.png" alt="Yuri Glow" style={{ maxHeight: '60px', width: 'auto', marginBottom: 'var(--spacing-sm)' }} />
               <p>&copy; {new Date().getFullYear()} جميع الحقوق محفوظة.</p>
               <p style={{ marginTop: 'var(--spacing-xs)', fontWeight: 'bold' }}>🚗 التوصيل متاح داخل جمهورية مصر العربية فقط</p>
             </div>

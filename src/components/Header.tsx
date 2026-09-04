@@ -9,7 +9,9 @@ export default function Header() {
   return (
     <header className="site-header">
       <div className="container header-content">
-        <Link href="/" className="logo">Yuri Glow</Link>
+        <Link href="/" className="logo">
+          <img src="/logo.png" alt="Yuri Glow" style={{ maxHeight: '50px', width: 'auto', objectFit: 'contain' }} />
+        </Link>
         <nav className="main-nav">
           <Link href="/">الرئيسية</Link>
           <Link href="/products">المنتجات</Link>
