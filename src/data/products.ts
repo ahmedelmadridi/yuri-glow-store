@@ -7,6 +7,8 @@ export interface Product {
   price: number;
   original_price?: number | null;
   discount_percentage?: number | null;
+  cost_price?: number;
+  stock_quantity?: number;
   description: string;
   image: string;
   stock?: number;
