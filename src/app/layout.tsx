@@ -62,12 +62,16 @@ export default function RootLayout({
           <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
             
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', color: 'white' }}>
-              <strong>روابط سريعة:</strong>
+              <strong>روابط هامة:</strong>
               <Link href="/products" style={{ color: 'white', textDecoration: 'none' }}>المنتجات</Link>
               <span style={{ color: '#aaa' }}>|</span>
               <Link href="/about" style={{ color: 'white', textDecoration: 'none' }}>من نحن</Link>
               <span style={{ color: '#aaa' }}>|</span>
               <Link href="/contact" style={{ color: 'white', textDecoration: 'none' }}>اتصل بنا</Link>
+              <span style={{ color: '#aaa' }}>|</span>
+              <Link href="/return-policy" style={{ color: 'white', textDecoration: 'none' }}>سياسة الاسترجاع</Link>
+              <span style={{ color: '#aaa' }}>|</span>
+              <Link href="/privacy-policy" style={{ color: 'white', textDecoration: 'none' }}>سياسة الخصوصية</Link>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
