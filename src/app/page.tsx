@@ -5,6 +5,7 @@ import styles from './page.module.css';
 // Mock data for featured products
 import { getProducts } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
+import SearchBar from '@/components/SearchBar';
 
 export default async function Home() {
   const allProducts = await getProducts();
@@ -43,6 +44,7 @@ export default async function Home() {
 
       <section className={styles.section}>
         <div className="container">
+          <SearchBar />
           <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
           <div className={styles.productGrid}>
           {featuredProducts.slice(0, 4).map((product) => (
