@@ -15,15 +15,10 @@ export default function AdminLayout({
           <h2>Yuri Glow Admin</h2>
         </div>
         <nav className={styles.nav}>
-          <Link href="/admin" className={styles.navLink}>
-            لوحة القيادة
-          </Link>
-            <Link href="/admin/orders" style={{ display: 'block', padding: '12px 16px', textDecoration: 'none', color: '#fff', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.1)', marginBottom: '8px' }}>
-              الطلبات الواردة
-            </Link>
-            <Link href="/admin/products" style={{ display: 'block', padding: '12px 16px', textDecoration: 'none', color: '#fff', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.1)' }}>
-              إدارة المنتجات
-            </Link>
+          <Link href="/admin" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>لوحة القيادة</Link>
+          <Link href="/admin/orders" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>الطلبات الواردة</Link>
+          <Link href="/admin/products" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>إدارة المنتجات</Link>
+          <Link href="/admin/reviews" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>إدارة التقييمات</Link>
           <Link href="/" className={styles.navLink} style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             العودة للمتجر
           </Link>

@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import AddToCartButton from '@/components/AddToCartButton';
 import ProductCard from '@/components/ProductCard';
+import ReviewForm from '@/components/ReviewForm';
+import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
@@ -56,6 +58,13 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
 
   // Fetch related products
   const relatedProducts = await getRelatedProducts(product.category, product.id);
+
+  // Fetch approved reviews
+  const { data: reviews } = await supabase
+    .from('product_reviews')
+    .select('*')
+    .eq('product_id', product.id)
+    .order('created_at', { ascending: false });
 
   // Calculate discount percentage automatically
   let calculatedDiscount = product.discount_percentage;
@@ -113,6 +122,36 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div style={{ marginTop: 'var(--spacing-3xl)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-2xl)' }}>
+        <h2 style={{ marginBottom: 'var(--spacing-lg)', color: 'var(--color-primary-dark)', fontSize: '1.8rem' }}>
+          تقييمات العملاء
+        </h2>
+        
+        {reviews && reviews.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+            {reviews.map((review) => (
+              <div key={review.id} style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '1.1rem' }}>{review.customer_name}</strong>
+                  <div style={{ color: '#f1c40f', fontSize: '1.2rem' }}>
+                    {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                  </div>
+                </div>
+                <p style={{ color: 'var(--color-text-light)', fontSize: '0.9rem', marginBottom: '12px' }}>
+                  {new Date(review.created_at).toLocaleDateString('ar-EG')}
+                </p>
+                <p style={{ lineHeight: '1.6' }}>{review.comment}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: 'var(--color-text-light)', fontStyle: 'italic', backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-md)' }}>لا توجد تقييمات لهذا المنتج بعد. كن أول من يقيم!</p>
+        )}
+
+        <ReviewForm productId={product.id} />
       </div>
 
       {/* Related Products Section */}
