@@ -17,6 +17,7 @@ export default function Header() {
         <nav className="main-nav">
           <Link href="/">الرئيسية</Link>
           <Link href="/products">المنتجات</Link>
+          <Link href="/track">تتبع طلبك</Link>
           <Link href="/about">من نحن</Link>
           <Link href="/contact">اتصل بنا</Link>
         </nav>
