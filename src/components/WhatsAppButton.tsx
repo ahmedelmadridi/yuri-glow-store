@@ -4,8 +4,8 @@ import React from 'react';
 
 export default function WhatsAppButton() {
   // قم بتغيير هذا الرقم إلى رقم هاتفك (مع كود الدولة بدون علامة +)
-  // مثال لمصر: 201XXXXXXXXX
-  const phoneNumber = '201234567890';
+  // رقم الواتساب الخاص بالمتجر
+  const phoneNumber = '201505432061';
   const defaultMessage = 'مرحباً، لدي استفسار بخصوص منتجات Yuri Glow!';
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`;
