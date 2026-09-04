@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function SearchBar() {
+export default function SearchBar({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
@@ -20,7 +20,7 @@ export default function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', marginBottom: 'var(--spacing-xl)', maxWidth: '500px', margin: '0 auto var(--spacing-xl) auto' }}>
+    <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', maxWidth: compact ? '250px' : '500px', margin: compact ? '0' : '0 auto var(--spacing-xl) auto', width: '100%' }}>
       <input
         type="text"
         value={query}

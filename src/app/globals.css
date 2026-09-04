@@ -193,3 +193,5 @@ img {
   }
 }
 
+
+@media (max-width: 768px) { .header-search-desktop { order: 4; width: 100%; margin-top: 10px; } }

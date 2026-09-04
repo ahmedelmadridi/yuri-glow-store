@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import SearchBar from './SearchBar';
 
 export default function Header() {
   const { totalItems } = useCart();
@@ -18,6 +19,9 @@ export default function Header() {
           <Link href="/about">من نحن</Link>
           <Link href="/contact">اتصل بنا</Link>
         </nav>
+        <div className="header-search-desktop" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 10px' }}>
+          <SearchBar compact />
+        </div>
         <div className="header-actions">
           <Link href="/cart" className="cart-btn" aria-label="سلة المشتريات">
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
