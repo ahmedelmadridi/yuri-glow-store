@@ -7,10 +7,40 @@ import styles from './page.module.css';
 import { getProducts } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+
+export const revalidate = 3600; // Cache the home page for 1 hour
 
 export default async function Home() {
   const allProducts = await getProducts();
-  const featuredProducts = allProducts.slice(0, 4);
+  let featuredProducts = allProducts.slice(0, 4);
+
+  // Fetch real best sellers
+  const { data: orderItems } = await supabaseAdmin
+    .from('order_items')
+    .select('product_id, quantity');
+
+  if (orderItems && orderItems.length > 0) {
+    const salesCount: Record<number, number> = {};
+    orderItems.forEach(item => {
+      salesCount[item.product_id] = (salesCount[item.product_id] || 0) + item.quantity;
+    });
+    
+    const sortedProductIds = Object.entries(salesCount)
+      .sort((a, b) => b[1] - a[1])
+      .map(entry => Number(entry[0]));
+      
+    const realBestSellers = sortedProductIds
+      .map(id => allProducts.find(p => p.id === id))
+      .filter(Boolean) as typeof allProducts;
+      
+    if (realBestSellers.length > 0) {
+      // Pad with other products if less than 4 best sellers exist
+      featuredProducts = [...realBestSellers, ...allProducts]
+        .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
+        .slice(0, 4);
+    }
+  }
 
   return (
     <>
