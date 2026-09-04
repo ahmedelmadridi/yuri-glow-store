@@ -1,11 +1,11 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
 
 export const revalidate = 0;
 
 export default async function AdminOrdersPage() {
-  const { data: orders, error } = await supabase
+  const { data: orders, error } = await supabaseAdmin
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false });

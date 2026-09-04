@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { notFound } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
   const orderId = resolvedParams.id;
 
   // Fetch Order
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
     .select('*')
     .eq('id', orderId)
@@ -20,7 +20,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
   }
 
   // Fetch Order Items
-  const { data: items, error: itemsError } = await supabase
+  const { data: items, error: itemsError } = await supabaseAdmin
     .from('order_items')
     .select(`
       quantity,
@@ -34,7 +34,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
     'use server';
     const newStatus = formData.get('status') as string;
     
-    await supabase
+    await supabaseAdmin
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId);
