@@ -5,6 +5,7 @@ import { Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/utils/format';
 import styles from './ProductCard.module.css';
+import WishlistButton from './WishlistButton';
 
 interface ProductCardProps {
   product: Product;
@@ -36,6 +37,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             خصم {calculatedDiscount}%
           </div>
         )}
+        <div onClick={(e) => e.preventDefault()} style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}>
+          <WishlistButton productId={product.id} />
+        </div>
       </Link>
       <div className={styles.productInfo}>
         <div className={styles.productCategory}>{product.category}</div>

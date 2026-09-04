@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import AddToCartButton from '@/components/AddToCartButton';
 import ProductCard from '@/components/ProductCard';
 import ReviewForm from '@/components/ReviewForm';
+import WishlistButton from '@/components/WishlistButton';
 import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 import Link from 'next/link';
@@ -89,8 +90,13 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
         </div>
         
         <div className={styles.detailsSection}>
-          <div className={styles.category}>{product.category}</div>
-          <h1 className={styles.title}>{product.name}</h1>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div className={styles.category}>{product.category}</div>
+              <h1 className={styles.title}>{product.name}</h1>
+            </div>
+            <WishlistButton productId={product.id} style={{ position: 'static' }} />
+          </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: 'var(--spacing-xl)' }}>
             <div className={styles.price} style={{ marginBottom: 0 }}>{formatPrice(product.price)}</div>

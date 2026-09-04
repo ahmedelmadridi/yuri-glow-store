@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import SearchBar from './SearchBar';
+import WishlistHeaderLink from './WishlistHeaderLink';
 
 export default function Header() {
   const { totalItems } = useCart();
@@ -26,7 +27,8 @@ export default function Header() {
             <SearchBar compact />
           </Suspense>
         </div>
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <WishlistHeaderLink />
           <Link href="/cart" className="cart-btn" aria-label="سلة المشتريات">
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
