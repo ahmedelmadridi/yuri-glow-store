@@ -1,0 +1,115 @@
+.pageTitle {
+  font-family: var(--font-heading);
+  margin-bottom: var(--spacing-2xl);
+  font-size: 2.5rem;
+}
+
+.checkoutLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+}
+
+@media (min-width: 992px) {
+  .checkoutLayout {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.formSection {
+  background-color: var(--color-bg);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.formGroup {
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  font-family: inherit;
+  font-size: 1rem;
+  background-color: white;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.summarySection {
+  background-color: var(--color-bg);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  height: fit-content;
+}
+
+.summaryItems {
+  margin-bottom: var(--spacing-md);
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+}
+
+.summaryItemName {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-light);
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-md) 0;
+}
+
+.totalRow {
+  color: var(--color-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-xl);
+}
+
+.paymentMethod {
+  background-color: var(--color-bg-alt);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-xl);
+  font-size: 0.95rem;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: 1.1rem;
+}

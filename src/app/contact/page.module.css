@@ -1,0 +1,126 @@
+.title {
+  text-align: center;
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3xl);
+}
+
+@media (min-width: 768px) {
+  .content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.infoSection h2 {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+}
+
+.infoSection > p {
+  line-height: 1.8;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-xl);
+  font-size: 1.1rem;
+}
+
+.contactCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.card {
+  background-color: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+.card h3 {
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.card p {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.socialMedia h3 {
+  margin-bottom: var(--spacing-md);
+}
+
+.socialLinks {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.socialLink {
+  padding: 10px 20px;
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.socialLink:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.formSection {
+  background-color: white;
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.formSection h2 {
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputGroup label {
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.inputGroup input,
+.inputGroup textarea {
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.inputGroup input:focus,
+.inputGroup textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(233, 154, 172, 0.2);
+}

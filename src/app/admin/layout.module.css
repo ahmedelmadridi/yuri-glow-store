@@ -1,0 +1,88 @@
+.adminLayout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--color-primary-dark);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.sidebarHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.sidebarHeader h2 {
+  font-family: var(--font-heading);
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md) 0;
+  flex: 1;
+}
+
+.navLink {
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.navLink:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.mainContent {
+  flex: 1;
+  margin-right: 250px; /* Leave space for sidebar */
+  padding: var(--spacing-xl);
+}
+
+/* Hide header and footer from admin layout by ensuring this layout covers everything, 
+but since it's nested in the root layout, the main site header/footer will still show up!
+We need to conditionally hide them in the root layout, or just let them be for now. 
+For a true admin dashboard, it's better to use route groups (e.g. (admin) and (store)) 
+but for this MVP we will just keep it simple and maybe add some CSS to hide the main header/footer if needed. */
+
+@media (max-width: 768px) {
+  .adminLayout {
+    flex-direction: column;
+  }
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: var(--spacing-sm);
+  }
+  .navLink {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  .mainContent {
+    margin-right: 0;
+    padding: var(--spacing-md);
+  }
+}
