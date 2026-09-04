@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
 import ViewCounter from '@/components/ViewCounter';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl">
       <body className={`${inter.variable} ${playfair.variable} ${cairo.variable}`}>
         <ViewCounter />
+        <WhatsAppButton />
         <CartProvider>
           <Header />
           
