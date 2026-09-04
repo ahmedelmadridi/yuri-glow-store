@@ -33,10 +33,9 @@ export default async function Home() {
           </div>
         </div>
         <div className={styles.heroImageContainer}>
-          {/* Using a placeholder aesthetic image */}
           <img 
-            src="https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?q=80&w=1000&auto=format&fit=crop" 
-            alt="Yuri Glow Skincare" 
+            src="/hero.jpg" 
+            alt="مجموعة العناية بالبشرة الكورية" 
             className={styles.heroImage}
           />
         </div>
