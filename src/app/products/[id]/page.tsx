@@ -1,10 +1,50 @@
 import { getProductById, getRelatedProducts } from '@/data/products';
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import AddToCartButton from '@/components/AddToCartButton';
 import ProductCard from '@/components/ProductCard';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const product = await getProductById(parseInt(resolvedParams.id));
+
+  if (!product) {
+    return {
+      title: 'المنتج غير موجود - Yuri Glow'
+    };
+  }
+
+  const title = `${product.name} | Yuri Glow`;
+  const description = product.description.substring(0, 160) + '...';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://yuri-glow.vercel.app/products/${product.id}`,
+      images: [
+        {
+          url: product.image,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+      type: 'article', // Used for products too
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [product.image],
+    },
+  };
+}
 
 export default async function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;

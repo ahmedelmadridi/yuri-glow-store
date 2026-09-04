@@ -18,7 +18,29 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
   title: 'Yuri Glow - مستحضرات التجميل الكورية',
-  description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية',
+  description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر. تسوقي الآن أحدث صيحات الجمال الكوري.',
+  openGraph: {
+    title: 'Yuri Glow - مستحضرات التجميل الكورية',
+    description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر.',
+    url: 'https://yuri-glow.vercel.app',
+    siteName: 'Yuri Glow',
+    images: [
+      {
+        url: '/hero.jpg', // Using the hero image as default share image
+        width: 1200,
+        height: 630,
+        alt: 'Yuri Glow - مستحضرات التجميل الكورية',
+      },
+    ],
+    locale: 'ar_EG',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Yuri Glow - مستحضرات التجميل الكورية',
+    description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية.',
+    images: ['/hero.jpg'],
+  },
 };
 
 export default function RootLayout({
