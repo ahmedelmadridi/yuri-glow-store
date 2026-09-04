@@ -1,6 +1,7 @@
-import { getProductById } from '@/data/products';
+import { getProductById, getRelatedProducts } from '@/data/products';
 import { notFound } from 'next/navigation';
 import AddToCartButton from '@/components/AddToCartButton';
+import ProductCard from '@/components/ProductCard';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
@@ -12,6 +13,9 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
   if (!product) {
     notFound();
   }
+
+  // Fetch related products
+  const relatedProducts = await getRelatedProducts(product.category, product.id);
 
   // Calculate discount percentage automatically
   let calculatedDiscount = product.discount_percentage;
@@ -70,6 +74,24 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div style={{ marginTop: 'var(--spacing-3xl)' }}>
+          <h2 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-primary-dark)', fontSize: '1.8rem', textAlign: 'center' }}>
+            قد يعجبك أيضاً
+          </h2>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+            gap: 'var(--spacing-lg)' 
+          }}>
+            {relatedProducts.map(relatedProduct => (
+              <ProductCard key={relatedProduct.id} product={relatedProduct} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

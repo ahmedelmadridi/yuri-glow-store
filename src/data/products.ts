@@ -48,3 +48,19 @@ export async function getProductById(id: number): Promise<Product | null> {
 
   return data;
 }
+
+export async function getRelatedProducts(category: string, currentProductId: number, limit: number = 4): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('category', category)
+    .neq('id', currentProductId)
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching related products:', error);
+    return [];
+  }
+
+  return data || [];
+}
