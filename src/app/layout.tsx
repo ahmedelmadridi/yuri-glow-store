@@ -1,17 +1,23 @@
 import type { Metadata } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Inter, Playfair_Display, Cairo } from 'next/font/google';
 import { CartProvider } from '@/context/CartContext';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
+import ViewCounter from '@/components/ViewCounter';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
+const cairo = Cairo({ 
+  subsets: ['arabic'],
+  weight: ['400', '600', '700'],
+  variable: '--font-cairo',
+});
 
 export const metadata: Metadata = {
-  title: 'Yuri Glow - Korean Skincare',
-  description: 'Premium Korean Skincare Products',
+  title: 'Yuri Glow - مستحضرات التجميل الكورية',
+  description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية',
 };
 
 export default function RootLayout({
@@ -21,7 +27,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${inter.variable} ${playfair.variable}`}>
+      <body className={`${inter.variable} ${playfair.variable} ${cairo.variable}`}>
+        <ViewCounter />
         <CartProvider>
           <Header />
           

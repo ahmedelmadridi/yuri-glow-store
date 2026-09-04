@@ -31,6 +31,13 @@ export default async function AdminDashboard() {
     .select('id, name, stock_quantity, image')
     .order('stock_quantity', { ascending: true });
 
+  // Fetch store metrics (visits)
+  const { data: metrics } = await supabaseAdmin
+    .from('store_metrics')
+    .select('total_visits')
+    .eq('id', 1)
+    .single();
+
   if (ordersError || productsError) {
     return <div>خطأ في جلب البيانات</div>;
   }
@@ -38,6 +45,7 @@ export default async function AdminDashboard() {
   // Basic Stats
   const totalOrders = orders?.length || 0;
   const pendingOrders = orders?.filter(o => o.status === 'pending').length || 0;
+  const totalVisits = metrics?.total_visits || 0;
   
   const validOrders = orders?.filter(o => o.status !== 'cancelled') || [];
   const revenue = validOrders.reduce((sum, order) => sum + order.total_amount, 0);
@@ -91,6 +99,11 @@ export default async function AdminDashboard() {
       
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-2xl)' }}>
+        <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إجمالي الزيارات 👁️</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{totalVisits}</p>
+        </div>
+
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إجمالي المبيعات</h3>
           <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{formatPrice(revenue)}</p>
