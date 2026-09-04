@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import styles from './page.module.css';
@@ -43,7 +44,9 @@ export default async function Home() {
 
       <section className={styles.section}>
         <div className="container">
-          <SearchBar />
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
           <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
           <div className={styles.productGrid}>
           {featuredProducts.slice(0, 4).map((product) => (

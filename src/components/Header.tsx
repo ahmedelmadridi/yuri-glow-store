@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import SearchBar from './SearchBar';
@@ -20,7 +21,9 @@ export default function Header() {
           <Link href="/contact">اتصل بنا</Link>
         </nav>
         <div className="header-search-desktop" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 10px' }}>
-          <SearchBar compact />
+          <Suspense fallback={null}>
+            <SearchBar compact />
+          </Suspense>
         </div>
         <div className="header-actions">
           <Link href="/cart" className="cart-btn" aria-label="سلة المشتريات">
