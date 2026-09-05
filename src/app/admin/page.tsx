@@ -2,11 +2,25 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { formatPrice } from '@/utils/format';
 import Link from 'next/link';
 
+import DateFilter from '@/components/DateFilter';
+
 export const revalidate = 0; // Disable caching for admin dashboard
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+  const resolvedParams = await searchParams;
+  const period = resolvedParams.period || 'all';
+
+  let startDate = null;
+  if (period === '7d') {
+    startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  } else if (period === '30d') {
+    startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  } else if (period === '1y') {
+    startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  }
+
   // Fetch orders with their items and related products
-  const { data: orders, error: ordersError } = await supabaseAdmin
+  let ordersQuery = supabaseAdmin
     .from('orders')
     .select(`
       id,
@@ -24,6 +38,12 @@ export default async function AdminDashboard() {
         )
       )
     `);
+
+  if (startDate) {
+    ordersQuery = ordersQuery.gte('created_at', startDate);
+  }
+
+  const { data: orders, error: ordersError } = await ordersQuery;
 
   // Fetch products for inventory alerts
   const { data: products, error: productsError } = await supabaseAdmin
@@ -96,7 +116,10 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-primary-dark)' }}>نظرة عامة وإحصائيات</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap', gap: '16px' }}>
+        <h1 style={{ margin: 0, color: 'var(--color-primary-dark)' }}>نظرة عامة وإحصائيات</h1>
+        <DateFilter />
+      </div>
       
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-2xl)' }}>
