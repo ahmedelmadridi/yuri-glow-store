@@ -11,6 +11,7 @@ export interface Product {
   stock_quantity?: number;
   description: string;
   image: string;
+  gallery_images?: string[] | null;
   stock?: number;
   ingredients?: string | null;
   features?: string | null;

@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
+import ProductGallery from '@/components/ProductGallery';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -80,13 +81,49 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
       </div>
 
       <div className={styles.productLayout}>
-        <div className={styles.imageSection} style={{ position: 'relative' }}>
-          <img src={product.image} alt={product.name} className={styles.mainImage} />
-          {calculatedDiscount && (
-            <div style={{ position: 'absolute', top: '24px', right: '24px', backgroundColor: '#e74c3c', color: 'white', padding: '6px 16px', borderRadius: '20px', fontWeight: 'bold', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              خصم {calculatedDiscount}%
-            </div>
-          )}
+        <div className={styles.imageSection}>
+          <ProductGallery 
+            mainImage={product.image} 
+            galleryImages={product.gallery_images} 
+            productName={product.name} 
+            calculatedDiscount={calculatedDiscount} 
+          />
+
+          {/* Product Additional Details moved under the image */}
+          <div style={{ marginTop: 'var(--spacing-2xl)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+            {product.features && (
+              <div>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مميزات المنتج:</h3>
+                <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
+                  {product.features.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                    <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {product.ingredients && (
+              <div>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مكونات المنتج:</h3>
+                <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
+                  {product.ingredients.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                    <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {product.usage_instructions && (
+              <div>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>طريقة الاستخدام:</h3>
+                <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
+                  {product.usage_instructions.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                    <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className={styles.detailsSection}>
@@ -110,39 +147,6 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
           <div className={styles.description}>
             <p>{product.description}</p>
           </div>
-
-          {product.features && (
-            <div style={{ marginTop: 'var(--spacing-md)' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مميزات المنتج:</h3>
-              <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
-                {product.features.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                  <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {product.ingredients && (
-            <div style={{ marginTop: 'var(--spacing-md)' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مكونات المنتج:</h3>
-              <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
-                {product.ingredients.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                  <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {product.usage_instructions && (
-            <div style={{ marginTop: 'var(--spacing-md)' }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>طريقة الاستخدام:</h3>
-              <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
-                {product.usage_instructions.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                  <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           <AddToCartButton product={product} />
 

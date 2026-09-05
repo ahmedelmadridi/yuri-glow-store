@@ -35,6 +35,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const features = formData.get('features') as string || null;
     const usage_instructions = formData.get('usage_instructions') as string || null;
     const imageFile = formData.get('image') as File;
+    const galleryFiles = formData.getAll('gallery_images') as File[];
 
     if (!name || !category || !price || !description) {
       setErrorMsg('الرجاء تعبئة جميع الحقول المطلوبة.');
@@ -50,8 +51,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
     try {
       let imageUrl = initialData?.image || '';
+      let galleryUrls = initialData?.gallery_images || [];
 
-      // 1. Upload Image to Supabase Storage if a new one is selected
+      // 1. Upload Main Image to Supabase Storage if a new one is selected
       if (imageFile && imageFile.size > 0) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
@@ -62,15 +64,42 @@ export default function ProductForm({ initialData }: ProductFormProps) {
           .upload(filePath, imageFile);
 
         if (uploadError) {
-          throw new Error('حدث خطأ أثناء رفع الصورة: ' + uploadError.message);
+          throw new Error('حدث خطأ أثناء رفع الصورة الأساسية: ' + uploadError.message);
         }
 
-        // 2. Get Public URL
         const { data: publicUrlData } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
 
         imageUrl = publicUrlData.publicUrl;
+      }
+
+      // 2. Upload Gallery Images
+      const validGalleryFiles = galleryFiles.filter(f => f.size > 0);
+      if (validGalleryFiles.length > 0) {
+        const newGalleryUrls: string[] = [];
+        
+        for (const file of validGalleryFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `gallery_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+          const filePath = `public/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('product-images')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            throw new Error('حدث خطأ أثناء رفع صور المعرض: ' + uploadError.message);
+          }
+
+          const { data: publicUrlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+
+          newGalleryUrls.push(publicUrlData.publicUrl);
+        }
+        
+        galleryUrls = newGalleryUrls; // Replace entirely or append? Usually replace if they upload new ones.
       }
 
       // 3. Insert or Update Product into Database using Server Action
@@ -85,7 +114,8 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         ingredients,
         features,
         usage_instructions,
-        image: imageUrl
+        image: imageUrl,
+        gallery_images: galleryUrls.length > 0 ? galleryUrls : null
       };
       
       if (initialData) {
@@ -158,9 +188,19 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
       <div>
         <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-          صورة المنتج {initialData ? '(اتركه فارغاً للاحتفاظ بالصورة الحالية)' : '*'}
+          الصورة الرئيسية للمنتج {initialData ? '(اتركها فارغة للاحتفاظ بالصورة الحالية)' : '*'}
         </label>
         <input type="file" name="image" accept="image/*" required={!initialData} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: '#fff' }} />
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+          صور إضافية للمنتج (معرض الصور - يمكنك تحديد أكثر من صورة)
+        </label>
+        <input type="file" name="gallery_images" accept="image/*" multiple style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: '#fff' }} />
+        {initialData?.gallery_images && initialData.gallery_images.length > 0 && (
+          <p style={{ marginTop: '8px', fontSize: '0.9rem', color: '#666' }}>يوجد حالياً {initialData.gallery_images.length} صور إضافية. رفع صور جديدة سيستبدل الصور القديمة.</p>
+        )}
       </div>
 
       <div>
