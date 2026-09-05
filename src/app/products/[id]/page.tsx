@@ -88,42 +88,6 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
             productName={product.name} 
             calculatedDiscount={calculatedDiscount} 
           />
-
-          {/* Product Additional Details moved under the image */}
-          <div style={{ marginTop: 'var(--spacing-2xl)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-            {product.features && (
-              <div>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مميزات المنتج:</h3>
-                <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
-                  {product.features.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                    <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {product.ingredients && (
-              <div>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مكونات المنتج:</h3>
-                <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
-                  {product.ingredients.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                    <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {product.usage_instructions && (
-              <div>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>طريقة الاستخدام:</h3>
-                <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
-                  {product.usage_instructions.split('\n').filter(line => line.trim() !== '').map((line, i) => (
-                    <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
         </div>
         
         <div className={styles.detailsSection}>
@@ -166,6 +130,50 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
           </div>
         </div>
       </div>
+
+      {/* Full Width Product Description & Features */}
+      {(product.features || product.ingredients || product.usage_instructions) && (
+        <div style={{ marginTop: 'var(--spacing-3xl)', backgroundColor: 'white', padding: 'var(--spacing-2xl)', borderRadius: 'var(--border-radius-lg)', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
+          <h2 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-primary-dark)', fontSize: '1.8rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '16px' }}>
+            تفاصيل المنتج
+          </h2>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
+            {product.ingredients && (
+              <div>
+                <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', color: 'var(--color-primary)', fontWeight: 'bold' }}>مكونات المنتج:</h3>
+                <ul style={{ lineHeight: '1.8', color: 'var(--color-text)', paddingRight: '24px', fontSize: '1.05rem' }}>
+                  {product.ingredients.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                    <li key={i} style={{ marginBottom: '8px' }}>{line.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {product.features && (
+              <div>
+                <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', color: 'var(--color-primary)', fontWeight: 'bold' }}>مميزات المنتج:</h3>
+                <ul style={{ lineHeight: '1.8', color: 'var(--color-text)', paddingRight: '24px', fontSize: '1.05rem' }}>
+                  {product.features.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                    <li key={i} style={{ marginBottom: '8px' }}>{line.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {product.usage_instructions && (
+              <div>
+                <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', color: 'var(--color-primary)', fontWeight: 'bold' }}>طريقة الاستخدام:</h3>
+                <ul style={{ lineHeight: '1.8', color: 'var(--color-text)', paddingRight: '24px', fontSize: '1.05rem' }}>
+                  {product.usage_instructions.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                    <li key={i} style={{ marginBottom: '8px' }}>{line.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Reviews Section */}
       <div style={{ marginTop: 'var(--spacing-3xl)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-2xl)' }}>
