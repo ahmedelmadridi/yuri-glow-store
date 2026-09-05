@@ -111,6 +111,27 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
             <p>{product.description}</p>
           </div>
 
+          {product.features && (
+            <div style={{ marginTop: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مميزات المنتج:</h3>
+              <p style={{ lineHeight: '1.6', color: 'var(--color-text)' }}>{product.features}</p>
+            </div>
+          )}
+
+          {product.ingredients && (
+            <div style={{ marginTop: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مكونات المنتج:</h3>
+              <p style={{ lineHeight: '1.6', color: 'var(--color-text)' }}>{product.ingredients}</p>
+            </div>
+          )}
+
+          {product.usage_instructions && (
+            <div style={{ marginTop: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>طريقة الاستخدام:</h3>
+              <p style={{ lineHeight: '1.6', color: 'var(--color-text)' }}>{product.usage_instructions}</p>
+            </div>
+          )}
+
           <AddToCartButton product={product} />
 
           <div className={styles.features}>

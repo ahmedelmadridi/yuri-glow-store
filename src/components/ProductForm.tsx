@@ -31,6 +31,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     const cost_price = parseInt(formData.get('cost_price') as string) || 0;
     const stock_quantity = parseInt(formData.get('stock_quantity') as string) || 0;
     const description = formData.get('description') as string;
+    const ingredients = formData.get('ingredients') as string || null;
+    const features = formData.get('features') as string || null;
+    const usage_instructions = formData.get('usage_instructions') as string || null;
     const imageFile = formData.get('image') as File;
 
     if (!name || !category || !price || !description) {
@@ -79,6 +82,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         cost_price,
         stock_quantity,
         description,
+        ingredients,
+        features,
+        usage_instructions,
         image: imageUrl
       };
       
@@ -158,8 +164,23 @@ export default function ProductForm({ initialData }: ProductFormProps) {
       </div>
 
       <div>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>وصف المنتج *</label>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>وصف المنتج الأساسي *</label>
         <textarea name="description" defaultValue={initialData?.description} required rows={5} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}></textarea>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>مكونات المنتج (اختياري)</label>
+        <textarea name="ingredients" defaultValue={initialData?.ingredients || ''} rows={4} placeholder="اتركه فارغاً إذا كنت لا ترغب بإظهاره للعميل" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}></textarea>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>مميزات المنتج (اختياري)</label>
+        <textarea name="features" defaultValue={initialData?.features || ''} rows={4} placeholder="اتركه فارغاً إذا كنت لا ترغب بإظهاره للعميل" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}></textarea>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>طريقة الاستخدام (اختياري)</label>
+        <textarea name="usage_instructions" defaultValue={initialData?.usage_instructions || ''} rows={4} placeholder="اتركه فارغاً إذا كنت لا ترغب بإظهاره للعميل" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)' }}></textarea>
       </div>
 
       <button type="submit" disabled={isSubmitting} style={{ backgroundColor: 'var(--color-primary)', color: 'white', padding: '14px', borderRadius: '8px', fontWeight: 'bold', fontSize: '1.1rem', cursor: isSubmitting ? 'not-allowed' : 'pointer', border: 'none', opacity: isSubmitting ? 0.7 : 1 }}>

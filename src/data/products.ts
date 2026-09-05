@@ -12,6 +12,9 @@ export interface Product {
   description: string;
   image: string;
   stock?: number;
+  ingredients?: string | null;
+  features?: string | null;
+  usage_instructions?: string | null;
 }
 
 export async function getProducts(searchQuery?: string): Promise<Product[]> {
