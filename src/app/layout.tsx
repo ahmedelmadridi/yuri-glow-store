@@ -20,7 +20,10 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://yurigloweg.com'),
-  title: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية الأصلية في مصر',
+  title: {
+    template: '%s | Yuri Glow',
+    default: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية الأصلية في مصر',
+  },
   description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر (Yuri Glow). تسوقي الآن أحدث صيحات الجمال الكوري، كريمات، سيروم، وغسول كوري بأفضل الأسعار.',
   keywords: ['يوري جلو', 'Yuri Glow', 'عناية بالبشرة', 'منتجات كورية', 'تجميل كوري', 'سيروم كوري', 'مستحضرات كورية في مصر', 'سكين كير كوري', 'كريم الحلزون', 'كوريا'],
   openGraph: {

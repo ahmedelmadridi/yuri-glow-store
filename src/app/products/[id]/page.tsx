@@ -21,14 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
 
-  const title = `${product.name} | Yuri Glow`;
   const description = product.description.substring(0, 160) + '...';
 
   return {
-    title,
+    title: product.name,
     description,
     openGraph: {
-      title,
+      title: product.name,
       description,
       url: `https://yuri-glow.vercel.app/products/${product.id}`,
       images: [
@@ -43,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: product.name,
       description,
       images: [product.image],
     },
