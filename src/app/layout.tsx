@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية.',
     images: ['/hero.jpg'],
   },
+  verification: {
+    google: 'Znm7Z7JfOmTOf43V3ypyW-3RzYXgWQyvBjHE4UzjggQ',
+  },
 };
 
 export default function RootLayout({
