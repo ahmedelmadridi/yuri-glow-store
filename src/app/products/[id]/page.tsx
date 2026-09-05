@@ -114,21 +114,33 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
           {product.features && (
             <div style={{ marginTop: 'var(--spacing-md)' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مميزات المنتج:</h3>
-              <p style={{ lineHeight: '1.6', color: 'var(--color-text)' }}>{product.features}</p>
+              <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
+                {product.features.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                  <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
+                ))}
+              </ul>
             </div>
           )}
 
           {product.ingredients && (
             <div style={{ marginTop: 'var(--spacing-md)' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>مكونات المنتج:</h3>
-              <p style={{ lineHeight: '1.6', color: 'var(--color-text)' }}>{product.ingredients}</p>
+              <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
+                {product.ingredients.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                  <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
+                ))}
+              </ul>
             </div>
           )}
 
           {product.usage_instructions && (
             <div style={{ marginTop: 'var(--spacing-md)' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: 'var(--color-primary)' }}>طريقة الاستخدام:</h3>
-              <p style={{ lineHeight: '1.6', color: 'var(--color-text)' }}>{product.usage_instructions}</p>
+              <ul style={{ lineHeight: '1.6', color: 'var(--color-text)', paddingRight: '20px' }}>
+                {product.usage_instructions.split('\n').filter(line => line.trim() !== '').map((line, i) => (
+                  <li key={i} style={{ marginBottom: '6px' }}>{line.trim()}</li>
+                ))}
+              </ul>
             </div>
           )}
 
