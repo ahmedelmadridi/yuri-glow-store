@@ -17,13 +17,15 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: 'Yuri Glow - مستحضرات التجميل الكورية',
-  description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر. تسوقي الآن أحدث صيحات الجمال الكوري.',
+  metadataBase: new URL('https://yurigloweg.com'),
+  title: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية الأصلية في مصر',
+  description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر (Yuri Glow). تسوقي الآن أحدث صيحات الجمال الكوري، كريمات، سيروم، وغسول كوري بأفضل الأسعار.',
+  keywords: ['يوري جلو', 'Yuri Glow', 'عناية بالبشرة', 'منتجات كورية', 'تجميل كوري', 'سيروم كوري', 'مستحضرات كورية في مصر', 'سكين كير كوري', 'كريم الحلزون', 'كوريا'],
   openGraph: {
-    title: 'Yuri Glow - مستحضرات التجميل الكورية',
+    title: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية',
     description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر.',
-    url: 'https://yuri-glow.vercel.app',
-    siteName: 'Yuri Glow',
+    url: 'https://yurigloweg.com',
+    siteName: 'Yuri Glow Egypt',
     images: [
       {
         url: '/hero.jpg', // Using the hero image as default share image
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Yuri Glow - مستحضرات التجميل الكورية',
+    title: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية',
     description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية.',
     images: ['/hero.jpg'],
   },
