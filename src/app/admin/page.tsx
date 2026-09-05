@@ -48,7 +48,8 @@ export default async function AdminDashboard() {
   const totalVisits = metrics?.total_visits || 0;
   
   const validOrders = orders?.filter(o => o.status !== 'cancelled') || [];
-  const revenue = validOrders.reduce((sum, order) => sum + order.total_amount, 0);
+  // Calculate revenue excluding shipping cost (Net Product Sales)
+  const revenue = validOrders.reduce((sum, order) => sum + (order.total_amount - (order.shipping_cost || 0)), 0);
   const averageOrderValue = validOrders.length > 0 ? revenue / validOrders.length : 0;
 
   // Calculate Net Profit
@@ -105,7 +106,7 @@ export default async function AdminDashboard() {
         </div>
 
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إجمالي المبيعات</h3>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>مبيعات المنتجات (بدون الشحن)</h3>
           <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{formatPrice(revenue)}</p>
         </div>
 
