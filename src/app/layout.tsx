@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Inter, Playfair_Display, Cairo } from 'next/font/google';
 import { CartProvider } from '@/context/CartContext';
 import Header from '@/components/Header';
@@ -6,6 +7,7 @@ import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
 import ViewCounter from '@/components/ViewCounter';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import FacebookPixel from '@/components/FacebookPixel';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -56,6 +58,9 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={`${inter.variable} ${playfair.variable} ${cairo.variable}`}>
+        <Suspense fallback={null}>
+          <FacebookPixel />
+        </Suspense>
         <ViewCounter />
         <WhatsAppButton />
         <CartProvider>

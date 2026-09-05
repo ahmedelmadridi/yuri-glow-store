@@ -149,6 +149,16 @@ ${orderItemsText}
       console.error("Failed to send telegram notification", e);
     }
     
+    // Facebook Pixel Purchase Event
+    import('@/utils/fpixel').then(({ trackEvent }) => {
+      trackEvent('Purchase', {
+        value: finalTotal,
+        currency: 'EGP',
+        content_ids: cart.map(item => item.product.id),
+        content_type: 'product',
+      });
+    });
+    
     setIsSubmitted(true);
     
     // Clear cart and go to success

@@ -2,6 +2,7 @@
 
 import { useCart, Product } from '@/context/CartContext';
 import { useState } from 'react';
+import { trackEvent } from '@/utils/fpixel';
 import styles from './AddToCartButton.module.css';
 
 export default function AddToCartButton({ product }: { product: Product }) {
@@ -11,6 +12,16 @@ export default function AddToCartButton({ product }: { product: Product }) {
 
   const handleAdd = () => {
     addToCart(product, quantity);
+    
+    // Facebook Pixel AddToCart Event
+    trackEvent('AddToCart', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'EGP'
+    });
+
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
