@@ -57,14 +57,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = (product: Product, quantity: number = 1) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.product.id === product.id);
+      
+      const maxStock = product.stock_quantity ?? 99; // Default max if not tracked
+
       if (existingItem) {
+        const newQuantity = Math.min(maxStock, existingItem.quantity + quantity);
         return prevCart.map(item =>
           item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       }
-      return [...prevCart, { product, quantity }];
+      
+      const initialQuantity = Math.min(maxStock, quantity);
+      return [...prevCart, { product, quantity: initialQuantity }];
     });
   };
 
@@ -77,10 +83,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId);
       return;
     }
+    
     setCart(prevCart =>
-      prevCart.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
+      prevCart.map(item => {
+        if (item.product.id === productId) {
+          const maxStock = item.product.stock_quantity ?? 99;
+          return { ...item, quantity: Math.min(maxStock, quantity) };
+        }
+        return item;
+      })
     );
   };
 

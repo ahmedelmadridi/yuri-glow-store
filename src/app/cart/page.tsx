@@ -40,7 +40,11 @@ export default function CartPage() {
                 <div className={styles.quantityControl}>
                   <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>-</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>+</button>
+                  <button 
+                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                    disabled={item.product.stock_quantity !== undefined && item.product.stock_quantity !== null && item.quantity >= item.product.stock_quantity}
+                    style={{ opacity: (item.product.stock_quantity !== undefined && item.product.stock_quantity !== null && item.quantity >= item.product.stock_quantity) ? 0.3 : 1, cursor: (item.product.stock_quantity !== undefined && item.product.stock_quantity !== null && item.quantity >= item.product.stock_quantity) ? 'not-allowed' : 'pointer' }}
+                  >+</button>
                 </div>
                 <button 
                   className={styles.removeBtn} 

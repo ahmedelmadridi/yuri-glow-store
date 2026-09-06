@@ -51,8 +51,13 @@ export default function AddToCartButton({ product }: { product: Product }) {
         >-</button>
         <span className={styles.qtyValue}>{quantity}</span>
         <button 
-          onClick={() => setQuantity(quantity + 1)}
+          onClick={() => {
+            const maxStock = product.stock_quantity ?? 99; // Assume 99 if not tracked
+            setQuantity(Math.min(maxStock, quantity + 1));
+          }}
           className={styles.qtyBtn}
+          disabled={product.stock_quantity !== undefined && product.stock_quantity !== null && quantity >= product.stock_quantity}
+          style={{ opacity: (product.stock_quantity !== undefined && product.stock_quantity !== null && quantity >= product.stock_quantity) ? 0.5 : 1 }}
         >+</button>
       </div>
       <button 
