@@ -18,6 +18,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   } else if (period === '1y') {
     startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+  }
   // Fetch orders with their items and related products
   let ordersQuery = supabaseAdmin
     .from('orders')
