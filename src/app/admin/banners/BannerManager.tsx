@@ -19,15 +19,15 @@ export default function BannerManager({ initialBanners }: { initialBanners: any[
     const filePath = `banners/${fileName}`;
 
     try {
-      // 1. Upload image to Supabase Storage (assuming 'products' bucket is used for simplicity, or we can use it for banners too)
+      // 1. Upload image to Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('products')
+        .from('product-images')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
-        .from('products')
+        .from('product-images')
         .getPublicUrl(filePath);
 
       const imageUrl = publicUrlData.publicUrl;
@@ -64,7 +64,7 @@ export default function BannerManager({ initialBanners }: { initialBanners: any[
       const fileName = pathParts[pathParts.length - 1];
       
       // Try to delete from storage
-      await supabase.storage.from('products').remove([`banners/${fileName}`]);
+      await supabase.storage.from('product-images').remove([`banners/${fileName}`]);
 
       // Delete from DB
       const { error } = await supabase.from('banners').delete().eq('id', id);
