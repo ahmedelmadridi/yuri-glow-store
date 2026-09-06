@@ -5,6 +5,21 @@ import { revalidatePath } from 'next/cache';
 
 // --- Announcements ---
 
+export async function getPublicAnnouncements() {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('announcements')
+      .select('text')
+      .eq('is_active', true)
+      .order('created_at', { ascending: true });
+      
+    if (error) throw new Error(error.message);
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 export async function addAnnouncement(text: string) {
   try {
     const { data, error } = await supabaseAdmin

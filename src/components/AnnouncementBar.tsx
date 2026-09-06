@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getPublicAnnouncements } from '@/app/actions/admin-content';
 
 export default function AnnouncementBar() {
   const [messages, setMessages] = useState<string[]>(['🚚 شحن مجاني لأي طلب يتخطى 3000 ج.م (بدون استخدام كود خصم)']);
@@ -9,14 +9,10 @@ export default function AnnouncementBar() {
 
   useEffect(() => {
     async function fetchAnnouncements() {
-      const { data } = await supabase
-        .from('announcements')
-        .select('text')
-        .eq('is_active', true)
-        .order('created_at', { ascending: true });
+      const { success, data } = await getPublicAnnouncements();
         
-      if (data && data.length > 0) {
-        setMessages(data.map(d => d.text));
+      if (success && data && data.length > 0) {
+        setMessages(data.map((d: any) => d.text));
       }
     }
     fetchAnnouncements();
