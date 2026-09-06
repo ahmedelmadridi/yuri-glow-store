@@ -26,6 +26,22 @@ export default function AddToCartButton({ product }: { product: Product }) {
     setTimeout(() => setAdded(false), 2000);
   };
 
+  const isOutOfStock = product.stock_quantity !== undefined && product.stock_quantity !== null && product.stock_quantity <= 0;
+
+  if (isOutOfStock) {
+    return (
+      <div className={styles.container} style={{ justifyContent: 'center' }}>
+        <button 
+          className={`btn-primary ${styles.addButton}`}
+          style={{ backgroundColor: '#95a5a6', cursor: 'not-allowed', width: '100%' }}
+          disabled
+        >
+          نفذت الكمية 😔
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.quantityControl}>
