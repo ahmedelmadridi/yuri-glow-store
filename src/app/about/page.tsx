@@ -8,7 +8,7 @@ export default function AboutPage() {
       
       <div className={styles.content}>
         <div className={styles.imageSection}>
-          <img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop" alt="من نحن - Yuri Glow" className={styles.mainImage} />
+          <img src="/logo.png" alt="يوري جلو - شعار" className={styles.mainImage} style={{ objectFit: 'contain', padding: '20px', backgroundColor: 'var(--color-bg)' }} />
         </div>
         
         <div className={styles.textSection}>

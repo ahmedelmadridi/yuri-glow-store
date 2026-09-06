@@ -29,6 +29,9 @@ export default function AdminLayout({
               <Link href="/admin/banners" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>إدارة البنرات (الصور)</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
+              <Link href="/admin/announcements" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>شريط الأخبار الإعلاني</Link>
+            </li>
+            <li style={{ marginBottom: '10px' }}>
               <Link href="/admin/reviews" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>إدارة التقييمات</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>

@@ -6,14 +6,14 @@ import { useCart } from '../context/CartContext';
 import SearchBar from './SearchBar';
 import WishlistHeaderLink from './WishlistHeaderLink';
 
+import AnnouncementBar from './AnnouncementBar';
+
 export default function Header() {
   const { totalItems } = useCart();
 
   return (
     <header className="site-header" style={{ padding: 0 }}>
-      <div style={{ backgroundColor: 'var(--color-primary-dark)', color: 'white', textAlign: 'center', padding: '8px', fontSize: '0.95rem', fontWeight: 'bold' }}>
-        🚚 شحن مجاني لأي طلب يتخطى 3000 ج.م (بدون استخدام كود خصم)
-      </div>
+      <AnnouncementBar />
       <div className="container header-content" style={{ padding: 'var(--spacing-md)' }}>
         <Link href="/" className="logo">
           <img src="/logo.png" alt="Yuri Glow" style={{ maxHeight: '50px', width: 'auto', objectFit: 'contain' }} />
