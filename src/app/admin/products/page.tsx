@@ -36,7 +36,7 @@ export default async function AdminProductsPage() {
                 <th style={{ padding: 'var(--spacing-md)' }}>المنتج</th>
                 <th style={{ padding: 'var(--spacing-md)' }}>التصنيف</th>
                 <th style={{ padding: 'var(--spacing-md)' }}>السعر الحالي</th>
-                <th style={{ padding: 'var(--spacing-md)' }}>السعر القديم</th>
+                <th style={{ padding: 'var(--spacing-md)' }}>العدد في المخزون</th>
                 <th style={{ padding: 'var(--spacing-md)' }}>الإجراءات</th>
               </tr>
             </thead>
@@ -49,7 +49,9 @@ export default async function AdminProductsPage() {
                   </td>
                   <td style={{ padding: 'var(--spacing-md)' }}>{product.category}</td>
                   <td style={{ padding: 'var(--spacing-md)', fontWeight: 'bold', color: 'var(--color-primary)' }}>{formatPrice(product.price)}</td>
-                  <td style={{ padding: 'var(--spacing-md)', textDecoration: 'line-through', color: '#95a5a6' }}>{product.original_price ? formatPrice(product.original_price) : '-'}</td>
+                  <td style={{ padding: 'var(--spacing-md)', fontWeight: 'bold', color: product.stock_quantity <= 5 ? '#e74c3c' : 'var(--color-text)' }}>
+                    {product.stock_quantity ?? 0}
+                  </td>
                   <td style={{ padding: 'var(--spacing-md)' }}>
                     <Link href={`/admin/products/${product.id}/edit`} style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 'bold' }}>
                       تعديل
