@@ -8,6 +8,7 @@ import { getProducts } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import HeroSlider from '@/components/HeroSlider';
 
 export const revalidate = 3600; // Cache the home page for 1 hour
 
@@ -42,6 +43,18 @@ export default async function Home() {
     }
   }
 
+  // Fetch hero banners
+  let bannerImages = ['/hero.jpg']; // Default fallback
+  const { data: banners, error: bannersError } = await supabaseAdmin
+    .from('banners')
+    .select('image_url')
+    .order('sort_order', { ascending: true })
+    .eq('is_active', true);
+    
+  if (!bannersError && banners && banners.length > 0) {
+    bannerImages = banners.map(b => b.image_url);
+  }
+
   return (
     <>
       <section className={styles.hero}>
@@ -64,11 +77,7 @@ export default async function Home() {
           </div>
         </div>
         <div className={styles.heroImageContainer}>
-          <img 
-            src="/hero.jpg" 
-            alt="مجموعة العناية بالبشرة الكورية" 
-            className={styles.heroImage}
-          />
+          <HeroSlider images={bannerImages} />
         </div>
       </section>
 
