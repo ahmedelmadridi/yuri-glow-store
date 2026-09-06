@@ -82,8 +82,10 @@ export default function CheckoutPage() {
       subtotal = Math.round(subtotal - (subtotal * (appliedCoupon.discount / 100)));
     }
     
-    const shipping = shippingCost;
-    const finalTotal = subtotal + shipping;
+    // Free shipping if subtotal >= 3000 AND no coupon is applied
+    const actualShippingCost = (totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost;
+    
+    const finalTotal = subtotal + actualShippingCost;
 
     const orderId = crypto.randomUUID();
 
@@ -98,7 +100,7 @@ export default function CheckoutPage() {
         address: formData.address,
         notes: formData.notes + (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : ''),
         subtotal_amount: subtotal,
-        shipping_cost: shipping,
+        shipping_cost: actualShippingCost,
         total_amount: finalTotal,
       });
 
@@ -286,14 +288,20 @@ ${orderItemsText}
           )}
           <div className={styles.summaryRow}>
             <span>الشحن ({selectedGov})</span>
-            <span>{formatPrice(shippingCost)}</span>
+            <span>
+              {totalPrice >= 3000 && !appliedCoupon ? (
+                <span style={{ color: '#27ae60', fontWeight: 'bold' }}>مجانًا! 🎁</span>
+              ) : (
+                formatPrice(shippingCost)
+              )}
+            </span>
           </div>
           
           <hr className={styles.divider} />
           
           <div className={`${styles.summaryRow} ${styles.totalRow}`}>
             <span>الإجمالي المطلوب</span>
-            <span>{formatPrice(totalPrice + shippingCost)}</span>
+            <span>{formatPrice((appliedCoupon ? Math.round(totalPrice - (totalPrice * (appliedCoupon.discount / 100))) : totalPrice) + ((totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost))}</span>
           </div>
           
           <div className={styles.paymentMethod}>
