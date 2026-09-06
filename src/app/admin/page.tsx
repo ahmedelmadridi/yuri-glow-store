@@ -3,6 +3,7 @@ import { formatPrice } from '@/utils/format';
 import Link from 'next/link';
 
 import DateFilter from '@/components/DateFilter';
+import { governorates } from '@/data/governorates';
 
 export const revalidate = 0; // Disable caching for admin dashboard
 
@@ -17,8 +18,6 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   } else if (period === '1y') {
     startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
-  }
-
   // Fetch orders with their items and related products
   let ordersQuery = supabaseAdmin
     .from('orders')
@@ -26,6 +25,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       id,
       total_amount,
       shipping_cost,
+      governorate,
       status,
       created_at,
       order_items (
@@ -68,20 +68,29 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const totalVisits = metrics?.total_visits || 0;
   
   const validOrders = orders?.filter(o => o.status !== 'cancelled') || [];
-  // Calculate revenue excluding shipping cost (Net Product Sales)
+  
+  // Revenue is what the customer paid for PRODUCTS (excluding any shipping they paid).
+  // Total Amount - Shipping Cost paid by customer = Product Sales Revenue
   const revenue = validOrders.reduce((sum, order) => sum + (order.total_amount - (order.shipping_cost || 0)), 0);
   const averageOrderValue = validOrders.length > 0 ? revenue / validOrders.length : 0;
 
   // Calculate Net Profit
-  // Net Profit = (Revenue - Shipping) - (Total Cost of Items)
-  // Assuming shipping_cost is exactly what we pay the courier, so it's a pass-through cost.
+  // Net Profit = Product Revenue - Total Cost of Goods - Shipping paid by merchant
+  // If shipping_cost (paid by customer) is 0, the merchant pays the FULL courier fee.
+  // If customer paid shipping, the merchant just passes it to the courier (no loss, no gain).
+  // So the loss on shipping is: (Courier Fee) - (What customer paid)
   let totalCostOfGoods = 0;
-  let totalShippingCost = 0;
+  let totalShippingLoss = 0;
 
   const productSalesCount: Record<string, { name: string, quantity: number, revenue: number }> = {};
 
   validOrders.forEach(order => {
-    totalShippingCost += (order.shipping_cost || 0);
+    const courierFee = governorates.find(g => g.name === order.governorate)?.shippingCost || 0;
+    const customerPaidShipping = order.shipping_cost || 0;
+    
+    // The merchant loses money on shipping if they charged the customer less than the courier fee (e.g. Free shipping)
+    const shippingLoss = Math.max(0, courierFee - customerPaidShipping);
+    totalShippingLoss += shippingLoss;
     
     order.order_items.forEach((item: any) => {
       const quantity = item.quantity;
@@ -104,7 +113,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     });
   });
 
-  const netProfit = revenue - totalShippingCost - totalCostOfGoods;
+  const netProfit = revenue - totalCostOfGoods - totalShippingLoss;
 
   // Sort best selling products
   const bestSellers = Object.values(productSalesCount)
