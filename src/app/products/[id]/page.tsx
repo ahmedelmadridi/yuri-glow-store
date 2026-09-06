@@ -98,7 +98,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
             <WishlistButton productId={product.id} style={{ position: 'static' }} />
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: 'var(--spacing-md)' }}>
             <div className={styles.price} style={{ marginBottom: 0 }}>{formatPrice(product.price)}</div>
             {product.original_price && (
               <div style={{ color: '#95a5a6', textDecoration: 'line-through', fontSize: '1.2rem' }}>
@@ -107,6 +107,27 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
             )}
           </div>
           
+          {/* Stock Indicator */}
+          {product.stock_quantity !== undefined && product.stock_quantity !== null && product.stock_quantity > 0 && (
+            <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ 
+                display: 'inline-block', 
+                width: '10px', 
+                height: '10px', 
+                borderRadius: '50%', 
+                backgroundColor: product.stock_quantity <= 5 ? '#e74c3c' : '#2ecc71',
+                boxShadow: product.stock_quantity <= 5 ? '0 0 8px #e74c3c' : '0 0 8px #2ecc71'
+              }}></span>
+              <span style={{ 
+                color: product.stock_quantity <= 5 ? '#e74c3c' : '#27ae60', 
+                fontWeight: 'bold', 
+                fontSize: '1rem' 
+              }}>
+                {product.stock_quantity <= 5 ? `أسرع! متبقي ${product.stock_quantity} قطع فقط في المخزون 🏃‍♀️` : `متوفر في المخزون (${product.stock_quantity} قطعة)`}
+              </span>
+            </div>
+          )}
+
           <div className={styles.description}>
             <p>{product.description}</p>
           </div>
