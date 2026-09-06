@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+import { addAnnouncement, toggleAnnouncement, deleteAnnouncement } from '@/app/actions/admin-content';
+
 export default function AnnouncementManager({ initialAnnouncements }: { initialAnnouncements: any[] }) {
   const [announcements, setAnnouncements] = useState(initialAnnouncements);
   const [newText, setNewText] = useState('');
@@ -17,18 +19,11 @@ export default function AnnouncementManager({ initialAnnouncements }: { initialA
     setIsSubmitting(true);
 
     try {
-      const { data: newAnnouncement, error } = await supabase
-        .from('announcements')
-        .insert({
-          text: newText.trim(),
-          is_active: true
-        })
-        .select()
-        .single();
+      const { success, data, error } = await addAnnouncement(newText.trim());
 
-      if (error) throw error;
+      if (!success) throw new Error(error);
 
-      setAnnouncements([...announcements, newAnnouncement]);
+      setAnnouncements([...announcements, data]);
       setNewText('');
       router.refresh();
     } catch (err: any) {
@@ -42,8 +37,8 @@ export default function AnnouncementManager({ initialAnnouncements }: { initialA
     if (!confirm('هل أنت متأكد من حذف هذا الخبر؟')) return;
 
     try {
-      const { error } = await supabase.from('announcements').delete().eq('id', id);
-      if (error) throw error;
+      const { success, error } = await deleteAnnouncement(id);
+      if (!success) throw new Error(error);
 
       setAnnouncements(announcements.filter(a => a.id !== id));
       router.refresh();
@@ -54,12 +49,8 @@ export default function AnnouncementManager({ initialAnnouncements }: { initialA
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('announcements')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
-        
-      if (error) throw error;
+      const { success, error } = await toggleAnnouncement(id, !currentStatus);
+      if (!success) throw new Error(error);
 
       setAnnouncements(announcements.map(a => 
         a.id === id ? { ...a, is_active: !currentStatus } : a

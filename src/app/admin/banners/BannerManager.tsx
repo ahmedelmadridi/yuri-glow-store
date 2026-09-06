@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+import { addBanner, deleteBanner } from '@/app/actions/admin-content';
+
 export default function BannerManager({ initialBanners }: { initialBanners: any[] }) {
   const [banners, setBanners] = useState(initialBanners);
   const [isUploading, setIsUploading] = useState(false);
@@ -32,18 +34,10 @@ export default function BannerManager({ initialBanners }: { initialBanners: any[
 
       const imageUrl = publicUrlData.publicUrl;
 
-      // 2. Save to database
-      const { data: newBanner, error: dbError } = await supabase
-        .from('banners')
-        .insert({
-          image_url: imageUrl,
-          sort_order: banners.length,
-          is_active: true
-        })
-        .select()
-        .single();
+      // 2. Save to database using server action
+      const { success, data: newBanner, error } = await addBanner(imageUrl, banners.length);
 
-      if (dbError) throw dbError;
+      if (!success) throw new Error(error);
 
       setBanners([...banners, newBanner]);
       router.refresh();
@@ -63,12 +57,9 @@ export default function BannerManager({ initialBanners }: { initialBanners: any[
       const pathParts = imageUrl.split('/');
       const fileName = pathParts[pathParts.length - 1];
       
-      // Try to delete from storage
-      await supabase.storage.from('product-images').remove([`banners/${fileName}`]);
-
-      // Delete from DB
-      const { error } = await supabase.from('banners').delete().eq('id', id);
-      if (error) throw error;
+      // Delete using server action
+      const { success, error } = await deleteBanner(id, fileName);
+      if (!success) throw new Error(error);
 
       setBanners(banners.filter(b => b.id !== id));
       router.refresh();
