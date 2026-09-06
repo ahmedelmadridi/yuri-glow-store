@@ -241,7 +241,7 @@ ${orderItemsText}
                   onClick={handleApplyCoupon}
                   disabled={isCheckingCoupon || !couponCode.trim()}
                   style={{ 
-                    backgroundColor: 'var(--color-secondary)', 
+                    backgroundColor: 'var(--color-primary-dark)', 
                     color: 'white', 
                     border: 'none', 
                     padding: '0 16px', 
