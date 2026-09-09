@@ -31,7 +31,7 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     notes: '',
-    paymentMethod: 'cod', // 'cod' or 'wallet'
+    paymentMethod: 'wallet', // Only 'wallet' is supported now
     walletReference: ''
   });
 
@@ -310,56 +310,30 @@ ${orderItemsText}
           </div>
           
           <div style={{ marginBottom: 'var(--spacing-md)', backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع</h3>
+            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع: الدفع الإلكتروني 📱</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <div style={{ padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
+              <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
+                <strong>برجاء تحويل إجمالي المبلغ على أحد الأرقام التالية لتأكيد طلبك:</strong>
+              </p>
+              <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
+                <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
+                <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>012 7788 5159</strong></li>
+              </ul>
+              <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
                 <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="cod" 
-                  checked={formData.paymentMethod === 'cod'} 
+                  type="text" 
+                  id="walletReference" 
+                  name="walletReference" 
+                  required 
+                  value={formData.walletReference} 
                   onChange={handleInputChange} 
+                  placeholder="مثال: 01012345678"
+                  style={{ border: '1px solid #27ae60' }}
                 />
-                <span>الدفع عند الاستلام (COD) 💵</span>
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="wallet" 
-                  checked={formData.paymentMethod === 'wallet'} 
-                  onChange={handleInputChange} 
-                />
-                <span>الدفع المسبق (انستاباي / أورانج كاش / فودافون كاش) 📱</span>
-              </label>
-            </div>
-
-            {formData.paymentMethod === 'wallet' && (
-              <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
-                <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
-                  <strong>برجاء تحويل إجمالي المبلغ على أحد الأرقام التالية:</strong>
-                </p>
-                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
-                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>012 7788 5159</strong></li>
-                </ul>
-                <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                  <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
-                  <input 
-                    type="text" 
-                    id="walletReference" 
-                    name="walletReference" 
-                    required={formData.paymentMethod === 'wallet'} 
-                    value={formData.walletReference} 
-                    onChange={handleInputChange} 
-                    placeholder="مثال: 01012345678"
-                    style={{ border: '1px solid #27ae60' }}
-                  />
-                </div>
               </div>
-            )}
+            </div>
           </div>
           
           {errorMsg && <div style={{ color: 'red', marginBottom: 'var(--spacing-md)' }}>{errorMsg}</div>}
