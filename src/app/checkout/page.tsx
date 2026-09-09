@@ -30,7 +30,9 @@ export default function CheckoutPage() {
     name: '',
     phone: '',
     address: '',
-    notes: ''
+    notes: '',
+    paymentMethod: 'cod', // 'cod' or 'wallet'
+    walletReference: ''
   });
 
   // Redirect if cart is empty (but not if we just submitted the order)
@@ -98,7 +100,9 @@ export default function CheckoutPage() {
         phone: formData.phone,
         governorate: selectedGov,
         address: formData.address,
-        notes: formData.notes + (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : ''),
+        notes: formData.notes + 
+               (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : '') +
+               (formData.paymentMethod === 'wallet' ? `\n[دفع إلكتروني: انستاباي/محفظة - الرقم المرجعي: ${formData.walletReference}]` : '\n[طريقة الدفع: عند الاستلام]'),
         subtotal_amount: subtotal,
         shipping_cost: actualShippingCost,
         total_amount: finalTotal,
@@ -139,6 +143,7 @@ export default function CheckoutPage() {
 📍 <b>المحافظة:</b> ${selectedGov}
 🏠 <b>العنوان:</b> ${formData.address}
 📝 <b>ملاحظات:</b> ${formData.notes || 'لا يوجد'}
+💳 <b>طريقة الدفع:</b> ${formData.paymentMethod === 'wallet' ? `انستاباي / محفظة إلكترونية\n🔢 <b>الرقم المحول منه:</b> ${formData.walletReference}` : 'الدفع عند الاستلام'}
 🎟️ <b>كود الخصم:</b> ${appliedCoupon ? `${appliedCoupon.code} (${appliedCoupon.discount}%)` : 'لا يوجد'}
 
 🛍️ <b>المنتجات:</b>
@@ -304,8 +309,57 @@ ${orderItemsText}
             <span>{formatPrice((appliedCoupon ? Math.round(totalPrice - (totalPrice * (appliedCoupon.discount / 100))) : totalPrice) + ((totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost))}</span>
           </div>
           
-          <div className={styles.paymentMethod}>
-            <strong>طريقة الدفع:</strong> الدفع عند الاستلام (COD) 💵
+          <div style={{ marginBottom: 'var(--spacing-md)', backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="cod" 
+                  checked={formData.paymentMethod === 'cod'} 
+                  onChange={handleInputChange} 
+                />
+                <span>الدفع عند الاستلام (COD) 💵</span>
+              </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="wallet" 
+                  checked={formData.paymentMethod === 'wallet'} 
+                  onChange={handleInputChange} 
+                />
+                <span>الدفع المسبق (انستاباي / أورانج كاش / فودافون كاش) 📱</span>
+              </label>
+            </div>
+
+            {formData.paymentMethod === 'wallet' && (
+              <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
+                <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
+                  <strong>برجاء تحويل إجمالي المبلغ على أحد الأرقام التالية:</strong>
+                </p>
+                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
+                  <li>انستاباي: <strong>yuriglow@instapay</strong></li>
+                  <li>المحافظ الإلكترونية (فودافون/أورانج كاش): <strong>01000000000</strong></li>
+                </ul>
+                <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                  <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
+                  <input 
+                    type="text" 
+                    id="walletReference" 
+                    name="walletReference" 
+                    required={formData.paymentMethod === 'wallet'} 
+                    value={formData.walletReference} 
+                    onChange={handleInputChange} 
+                    placeholder="مثال: 01012345678"
+                    style={{ border: '1px solid #27ae60' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           
           {errorMsg && <div style={{ color: 'red', marginBottom: 'var(--spacing-md)' }}>{errorMsg}</div>}
