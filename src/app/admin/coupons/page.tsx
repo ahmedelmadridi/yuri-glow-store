@@ -13,6 +13,17 @@ export default async function AdminCouponsPage() {
     return <div>خطأ في جلب الكوبونات</div>;
   }
 
+  // Fetch all orders to count coupon usage
+  const { data: orders } = await supabaseAdmin
+    .from('orders')
+    .select('notes');
+
+  const getCouponUsageCount = (code: string) => {
+    if (!orders) return 0;
+    const searchString = `(تم استخدام كود خصم: ${code})`;
+    return orders.filter(o => o.notes && o.notes.includes(searchString)).length;
+  };
+
   return (
     <div>
       <h1 style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-primary-dark)' }}>إدارة الكوبونات</h1>
@@ -50,15 +61,23 @@ export default async function AdminCouponsPage() {
             <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid var(--color-border)', textAlign: 'right' }}>
               <th style={{ padding: '16px' }}>الكود</th>
               <th style={{ padding: '16px' }}>نسبة الخصم</th>
+              <th style={{ padding: '16px' }}>مرات الاستخدام</th>
               <th style={{ padding: '16px' }}>الحالة</th>
               <th style={{ padding: '16px' }}>إجراء</th>
             </tr>
           </thead>
           <tbody>
-            {coupons && coupons.map((coupon) => (
+            {coupons && coupons.map((coupon) => {
+              const usageCount = getCouponUsageCount(coupon.code);
+              return (
               <tr key={coupon.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={{ padding: '16px', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{coupon.code}</td>
                 <td style={{ padding: '16px' }}>{coupon.discount_percentage}%</td>
+                <td style={{ padding: '16px', fontWeight: 'bold' }}>
+                  <span style={{ backgroundColor: '#e8f4f8', color: '#2980b9', padding: '4px 10px', borderRadius: '12px' }}>
+                    {usageCount} مرة
+                  </span>
+                </td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ 
                     padding: '4px 8px', 
@@ -92,11 +111,12 @@ export default async function AdminCouponsPage() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             
             {(!coupons || coupons.length === 0) && (
               <tr>
-                <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: '#7f8c8d' }}>
+                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#7f8c8d' }}>
                   لا توجد كوبونات حالياً.
                 </td>
               </tr>
