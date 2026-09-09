@@ -1,3 +1,13 @@
+.heroFullWidth {
+  position: relative;
+  width: 100%;
+  display: block;
+  aspect-ratio: 1920 / 800; /* Maintains the banner proportion */
+  background-color: var(--color-bg);
+  overflow: hidden;
+  margin-bottom: var(--spacing-2xl);
+}
+
 .hero {
   position: relative;
   min-height: 80vh;

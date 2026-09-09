@@ -22,31 +22,40 @@ export default function HeroSlider({ images }: HeroSliderProps) {
 
   if (!images || images.length === 0) {
     return (
-      <img 
-        src="/hero.jpg" 
-        alt="مجموعة العناية بالبشرة الكورية" 
-        className={styles.heroImage}
-      />
+      <a href="/products" style={{ display: 'block', width: '100%', height: '100%' }}>
+        <img 
+          src="/hero.jpg" 
+          alt="مجموعة العناية بالبشرة الكورية" 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </a>
     );
   }
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
       {images.map((img, idx) => (
-        <img 
+        <a 
+          href="/products"
           key={idx}
-          src={img} 
-          alt={`Slider image ${idx + 1}`} 
-          className={styles.heroImage}
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
+            width: '100%',
+            height: '100%',
             opacity: idx === currentIndex ? 1 : 0,
             transition: 'opacity 1s ease-in-out',
-            zIndex: idx === currentIndex ? 1 : 0
+            zIndex: idx === currentIndex ? 1 : 0,
+            display: 'block'
           }}
-        />
+        >
+          <img 
+            src={img} 
+            alt={`Slider image ${idx + 1}`} 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </a>
       ))}
       
       {images.length > 1 && (

@@ -57,28 +57,8 @@ export default async function Home() {
 
   return (
     <>
-      <section className={styles.hero}>
-        <div className={styles.heroBackground}></div>
-        <div className={`container ${styles.heroContainer}`}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>سر جمالك<br />من الطبيعة الكورية</h1>
-            <p className={styles.heroSubtitle}>
-              اكتشفي مجموعة يوري جلو للعناية بالبشرة، المستوحاة من أسرار الجمال الكوري 
-              لتمنحك بشرة نضرة، مشرقة، ومفعمة بالحيوية.
-            </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <Link href="/products" className="btn-primary">
-                تسوقي الآن
-              </Link>
-              <Link href="/about" className="btn-outline">
-                اكتشفي المزيد
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className={styles.heroImageContainer}>
-          <HeroSlider images={bannerImages} />
-        </div>
+      <section className={styles.heroFullWidth}>
+        <HeroSlider images={bannerImages} />
       </section>
 
       <section className={styles.section}>
