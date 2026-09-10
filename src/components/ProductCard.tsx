@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/utils/format';
 import styles from './ProductCard.module.css';
 import WishlistButton from './WishlistButton';
+import { createProductSlug } from '@/utils/slug';
 
 interface ProductCardProps {
   product: Product;
@@ -33,7 +34,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div className={`${styles.productCard} ${isOutOfStock ? styles.outOfStockCard : ''}`}>
-      <Link href={`/products/${product.id}`} className={styles.productImageWrapper}>
+      <Link href={`/products/${createProductSlug(product.name, product.id)}`} className={styles.productImageWrapper}>
         <img src={product.image} alt={product.name} className={`${styles.productImage} ${isOutOfStock ? styles.dimmedImage : ''}`} />
         
         {isOutOfStock ? (
@@ -52,7 +53,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
       <div className={styles.productInfo}>
         <div className={styles.productCategory}>{product.category}</div>
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${createProductSlug(product.name, product.id)}`}>
           <h3 className={styles.productName}>{product.name}</h3>
         </Link>
         <div className={styles.productBottom}>
@@ -63,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
           <div className={styles.actionsContainer}>
-            <Link href={`/products/${product.id}`} className={styles.detailsBtn}>
+            <Link href={`/products/${createProductSlug(product.name, product.id)}`} className={styles.detailsBtn}>
               التفاصيل
             </Link>
             <button 

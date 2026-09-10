@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getProducts } from '@/data/products';
+import { createProductSlug } from '@/utils/slug';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.yurigloweg.com';
@@ -8,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getProducts();
   
   const productUrls = products.map((product) => ({
-    url: `${baseUrl}/products/${product.id}`,
+    url: `${baseUrl}/products/${createProductSlug(product.name, product.id)}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.8,

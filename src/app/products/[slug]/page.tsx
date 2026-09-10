@@ -10,10 +10,12 @@ import styles from './page.module.css';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
 import ProductGallery from '@/components/ProductGallery';
+import { getIdFromSlug, createProductSlug } from '@/utils/slug';
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
-  const product = await getProductById(parseInt(resolvedParams.id));
+  const id = getIdFromSlug(decodeURIComponent(resolvedParams.slug));
+  const product = await getProductById(id);
 
   if (!product) {
     return {
@@ -22,6 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   const description = product.description.substring(0, 160) + '...';
+  const productSlug = createProductSlug(product.name, product.id);
 
   return {
     title: product.name,
@@ -29,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       title: product.name,
       description,
-      url: `https://yuri-glow.vercel.app/products/${product.id}`,
+      url: `https://www.yurigloweg.com/products/${productSlug}`,
       images: [
         {
           url: product.image,
@@ -49,9 +52,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductDetails({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const product = await getProductById(parseInt(resolvedParams.id));
+  const id = getIdFromSlug(decodeURIComponent(resolvedParams.slug));
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();

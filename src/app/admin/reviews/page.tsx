@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { approveReview, deleteReview } from '@/app/actions/reviews';
 import { getProductById } from '@/data/products';
+import { createProductSlug } from '@/utils/slug';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,7 @@ export default async function AdminReviewsPage() {
   const enrichedReviews = await Promise.all(
     reviews.map(async (r) => {
       const product = await getProductById(r.product_id);
-      return { ...r, productName: product?.name || 'منتج غير معروف' };
+      return { ...r, productName: product?.name || 'منتج غير معروف', productSlug: product ? createProductSlug(product.name, product.id) : r.product_id };
     })
   );
 
@@ -43,7 +44,7 @@ export default async function AdminReviewsPage() {
             {enrichedReviews.map((review) => (
               <tr key={review.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <td style={{ padding: '16px' }}>
-                  <Link href={`/products/${review.product_id}`} target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
+                  <Link href={`/products/${review.productSlug}`} target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
                     {review.productName}
                   </Link>
                 </td>

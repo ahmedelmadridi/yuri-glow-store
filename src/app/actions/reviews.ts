@@ -3,6 +3,8 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
+import { getProductById } from '@/data/products';
+import { createProductSlug } from '@/utils/slug';
 
 export async function addReview(productId: number, customerName: string, rating: number, comment: string) {
   if (!customerName || !rating || rating < 1 || rating > 5) {
@@ -39,7 +41,10 @@ export async function approveReview(reviewId: number, productId: number) {
     return { error: 'حدث خطأ' };
   }
 
-  revalidatePath(`/products/${productId}`);
+  const product = await getProductById(productId);
+  if (product) {
+    revalidatePath(`/products/${createProductSlug(product.name, product.id)}`);
+  }
   revalidatePath(`/admin/reviews`);
   return { success: true };
 }
@@ -54,7 +59,10 @@ export async function deleteReview(reviewId: number, productId: number) {
     return { error: 'حدث خطأ' };
   }
 
-  revalidatePath(`/products/${productId}`);
+  const product = await getProductById(productId);
+  if (product) {
+    revalidatePath(`/products/${createProductSlug(product.name, product.id)}`);
+  }
   revalidatePath(`/admin/reviews`);
   return { success: true };
 }
