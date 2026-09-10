@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/', '/checkout/'],
     },
-    sitemap: 'https://yurigloweg.com/sitemap.xml',
+    sitemap: 'https://www.yurigloweg.com/sitemap.xml',
   };
 }

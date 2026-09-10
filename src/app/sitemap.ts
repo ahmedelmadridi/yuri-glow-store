@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { getProducts } from '@/data/products';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://yurigloweg.com';
+  const baseUrl = 'https://www.yurigloweg.com';
   
   // Get all products dynamically
   const products = await getProducts();

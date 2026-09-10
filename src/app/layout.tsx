@@ -19,7 +19,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://yurigloweg.com'),
+  metadataBase: new URL('https://www.yurigloweg.com'),
   title: {
     template: '%s | Yuri Glow',
     default: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية الأصلية في مصر',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية',
     description: 'اكتشفي سر جمالك مع أفضل منتجات العناية بالبشرة الكورية الأصلية في مصر.',
-    url: 'https://yurigloweg.com',
+    url: 'https://www.yurigloweg.com',
     siteName: 'Yuri Glow Egypt',
     images: [
       {
