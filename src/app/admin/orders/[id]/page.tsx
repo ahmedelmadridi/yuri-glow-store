@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
+import StatusForm from './StatusForm';
 
 export default async function AdminOrderDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -29,20 +30,6 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
     `)
     .eq('order_id', orderId);
 
-  // Server Action to update status
-  async function updateStatus(formData: FormData) {
-    'use server';
-    const newStatus = formData.get('status') as string;
-    
-    await supabaseAdmin
-      .from('orders')
-      .update({ status: newStatus })
-      .eq('id', orderId);
-      
-    revalidatePath(`/admin/orders/${orderId}`);
-    revalidatePath(`/admin/orders`);
-  }
-
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)' }}>
@@ -68,21 +55,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius)', border: '1px solid var(--color-border)' }}>
           <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.2rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px' }}>حالة الطلب</h2>
           
-          <form action={updateStatus} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <p style={{ margin: '0 0 8px 0' }}>الحالة الحالية:</p>
-              <select name="status" defaultValue={order.status} style={{ width: '100%', padding: '12px', borderRadius: '4px', border: '1px solid var(--color-border)', fontSize: '1rem' }}>
-                <option value="pending">قيد الانتظار</option>
-                <option value="confirmed">مؤكد</option>
-                <option value="shipped">تم الشحن</option>
-                <option value="delivered">مكتمل (تم التوصيل)</option>
-                <option value="cancelled">ملغى</option>
-              </select>
-            </div>
-            <button type="submit" style={{ padding: '12px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
-              تحديث الحالة
-            </button>
-          </form>
+          <StatusForm orderId={orderId} currentStatus={order.status} />
         </div>
       </div>
 
