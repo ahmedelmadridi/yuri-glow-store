@@ -5,8 +5,8 @@ import styles from './page.module.css';
 
 // Mock data for featured products
 import { getProducts } from '@/data/products';
+import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
-import SortableProductGrid from '@/components/SortableProductGrid';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import HeroSlider from '@/components/HeroSlider';
 
