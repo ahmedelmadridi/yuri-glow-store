@@ -137,7 +137,7 @@ export async function deleteScreenshotReview(id: string, fileName: string) {
 
     const { error: storageError } = await supabaseAdmin.storage
       .from('product-images')
-      .remove([\	estimonials/\\]);
+      .remove([`testimonials/${fileName}`]);
 
     if (storageError) console.error('Failed to delete image from storage:', storageError);
 
