@@ -9,6 +9,7 @@ import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import HeroSlider from '@/components/HeroSlider';
+import TestimonialSlider from '@/components/TestimonialSlider';
 
 export const revalidate = 3600; // Cache the home page for 1 hour
 
@@ -84,30 +85,9 @@ export default async function Home() {
 
       {testimonials && testimonials.length > 0 && (
         <section className={styles.section} style={{ backgroundColor: '#fcfbf4' }}>
-          <div className="container">
+          <div className="container" style={{ position: 'relative' }}>
             <h2 className={styles.sectionTitle}>آراء عملائنا</h2>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-              gap: 'var(--spacing-xl)' 
-            }}>
-              {testimonials.map((testi) => (
-                <div key={testi.id} style={{
-                  borderRadius: 'var(--border-radius-lg)',
-                  overflow: 'hidden',
-                  boxShadow: 'var(--shadow-md)',
-                  aspectRatio: '9/16', // Typical screenshot ratio
-                  position: 'relative'
-                }}>
-                  <Image 
-                    src={testi.image_url} 
-                    alt="Customer Review" 
-                    fill 
-                    style={{ objectFit: 'cover' }}
-                  />
-                </div>
-              ))}
-            </div>
+            <TestimonialSlider testimonials={testimonials} />
           </div>
         </section>
       )}
