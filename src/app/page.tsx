@@ -43,26 +43,6 @@ export default async function Home() {
     }
   }
 
-  // Fetch ratings
-  const { data: reviews } = await supabaseAdmin
-    .from('product_reviews')
-    .select('product_id, rating')
-    .eq('is_approved', true);
-    
-  const productRatings: Record<number, number> = {};
-  if (reviews && reviews.length > 0) {
-    const sums: Record<number, { sum: number, count: number }> = {};
-    reviews.forEach(r => {
-      if (!sums[r.product_id]) sums[r.product_id] = { sum: 0, count: 0 };
-      sums[r.product_id].sum += r.rating;
-      sums[r.product_id].count += 1;
-    });
-    Object.keys(sums).forEach(id => {
-      const numId = Number(id);
-      productRatings[numId] = sums[numId].sum / sums[numId].count;
-    });
-  }
-
   // Fetch hero banners
   let bannerImages = ['/hero.jpg']; // Default fallback
   const { data: banners, error: bannersError } = await supabaseAdmin
@@ -74,6 +54,13 @@ export default async function Home() {
   if (!bannersError && banners && banners.length > 0) {
     bannerImages = banners.map(b => b.image_url);
   }
+
+  // Fetch screenshot reviews
+  const { data: testimonials } = await supabaseAdmin
+    .from('screenshot_reviews')
+    .select('id, image_url, sort_order')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
 
   return (
     <>
@@ -87,9 +74,43 @@ export default async function Home() {
             <SearchBar />
           </Suspense>
           <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
-          <SortableProductGrid products={featuredProducts.slice(0, 6)} productRatings={productRatings} />
+          <div className={styles.productGrid}>
+          {featuredProducts.slice(0, 6).map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+          </div>
         </div>
       </section>
+
+      {testimonials && testimonials.length > 0 && (
+        <section className={styles.section} style={{ backgroundColor: '#fcfbf4' }}>
+          <div className="container">
+            <h2 className={styles.sectionTitle}>آراء عملائنا</h2>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+              gap: 'var(--spacing-xl)' 
+            }}>
+              {testimonials.map((testi) => (
+                <div key={testi.id} style={{
+                  borderRadius: 'var(--border-radius-lg)',
+                  overflow: 'hidden',
+                  boxShadow: 'var(--shadow-md)',
+                  aspectRatio: '9/16', // Typical screenshot ratio
+                  position: 'relative'
+                }}>
+                  <Image 
+                    src={testi.image_url} 
+                    alt="Customer Review" 
+                    fill 
+                    style={{ objectFit: 'cover' }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

@@ -41,6 +41,9 @@ export default function AdminLayout({
               <Link href="/admin/reviews" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>إدارة التقييمات</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
+              <Link href="/admin/testimonials" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>آراء العملاء (صور)</Link>
+            </li>
+            <li style={{ marginBottom: '10px' }}>
               <Link href="/admin/coupons" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>أكواد الخصم</Link>
             </li>
           </ul>

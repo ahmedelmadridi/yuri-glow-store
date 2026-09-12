@@ -107,3 +107,44 @@ export async function deleteBanner(id: string, fileName: string) {
     return { success: false, error: error.message };
   }
 }
+
+// --- Screenshot Reviews ---
+
+export async function addScreenshotReview(image_url: string, sort_order: number) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('screenshot_reviews')
+      .insert({ image_url, sort_order, is_active: true })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    revalidatePath('/', 'layout');
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteScreenshotReview(id: string, fileName: string) {
+  try {
+    const { error: dbError } = await supabaseAdmin
+      .from('screenshot_reviews')
+      .delete()
+      .eq('id', id);
+
+    if (dbError) throw new Error(dbError.message);
+
+    const { error: storageError } = await supabaseAdmin.storage
+      .from('product-images')
+      .remove([\	estimonials/\\]);
+
+    if (storageError) console.error('Failed to delete image from storage:', storageError);
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
