@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { sendGAEvent } from '@next/third-parties/google';
 
 export type Product = {
   id: number;
@@ -55,6 +56,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart, isLoaded]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
+    // Send GA event for add to cart
+    sendGAEvent('event', 'add_to_cart', {
+      currency: 'EGP',
+      value: product.price * quantity,
+      items: [
+        {
+          item_id: product.id,
+          item_name: product.name,
+          price: product.price,
+          quantity: quantity
+        }
+      ]
+    });
+
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.product.id === product.id);
       
@@ -75,7 +90,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromCart = (productId: number) => {
-    setCart(prevCart => prevCart.filter(item => item.product.id !== productId));
+    setCart(prevCart => {
+      const itemToRemove = prevCart.find(item => item.product.id === productId);
+      if (itemToRemove) {
+        // Send GA event for remove from cart
+        sendGAEvent('event', 'remove_from_cart', {
+          currency: 'EGP',
+          value: itemToRemove.product.price * itemToRemove.quantity,
+          items: [
+            {
+              item_id: itemToRemove.product.id,
+              item_name: itemToRemove.product.name,
+              price: itemToRemove.product.price,
+              quantity: itemToRemove.quantity
+            }
+          ]
+        });
+      }
+      return prevCart.filter(item => item.product.id !== productId);
+    });
   };
 
   const updateQuantity = (productId: number, quantity: number) => {

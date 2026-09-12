@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import ViewCounter from '@/components/ViewCounter';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import FacebookPixel from '@/components/FacebookPixel';
@@ -74,6 +75,7 @@ export default function RootLayout({
         <Footer />
         </CartProvider>
         <Analytics />
+        <GoogleAnalytics gaId="G-GHT70K89VB" />
       </body>
     </html>
   );

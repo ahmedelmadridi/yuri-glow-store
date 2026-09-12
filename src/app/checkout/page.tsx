@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
 import { sendTelegramNotification } from '@/app/actions/telegram';
 import { validateCoupon } from '@/app/actions/coupons';
+import { sendGAEvent } from '@next/third-parties/google';
 import styles from './page.module.css';
 
 export default function CheckoutPage() {
@@ -39,8 +40,20 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (cart.length === 0 && !isSubmitted) {
       router.push('/cart');
+    } else if (cart.length > 0 && !isSubmitted) {
+      // Fire GA event for begin checkout
+      sendGAEvent('event', 'begin_checkout', {
+        currency: 'EGP',
+        value: totalPrice,
+        items: cart.map(item => ({
+          item_id: item.product.id,
+          item_name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity
+        }))
+      });
     }
-  }, [cart, isSubmitted, router]);
+  }, [cart, isSubmitted, router, totalPrice]);
 
   const handleGovChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const govName = e.target.value;
@@ -164,6 +177,21 @@ ${orderItemsText}
         content_ids: cart.map(item => item.product.id),
         content_type: 'product',
       });
+    });
+
+    // Google Analytics Purchase Event
+    sendGAEvent('event', 'purchase', {
+      transaction_id: orderId,
+      currency: 'EGP',
+      value: finalTotal,
+      shipping: actualShippingCost,
+      coupon: appliedCoupon ? appliedCoupon.code : undefined,
+      items: cart.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity
+      }))
     });
     
     setIsSubmitted(true);
