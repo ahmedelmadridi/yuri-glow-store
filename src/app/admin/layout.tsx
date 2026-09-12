@@ -23,28 +23,28 @@ export default function AdminLayout({
         <nav className={styles.nav}>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: 'rgba(255,255,255,0.1)' }}>لوحة القيادة</Link>
+              <Link href="/admin" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname === '/admin' ? 'rgba(255,255,255,0.1)' : 'transparent' }}>لوحة القيادة</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/orders" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>الطلبات الواردة</Link>
+              <Link href="/admin/orders" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/orders') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>الطلبات الواردة</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/products" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>إدارة المنتجات</Link>
+              <Link href="/admin/products" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/products') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة المنتجات</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/banners" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>إدارة البنرات (الصور)</Link>
+              <Link href="/admin/banners" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/banners') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة البنرات (الصور)</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/announcements" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>شريط الأخبار الإعلاني</Link>
+              <Link href="/admin/announcements" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/announcements') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>شريط الأخبار الإعلاني</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/reviews" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>إدارة التقييمات</Link>
+              <Link href="/admin/reviews" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/reviews') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة التقييمات</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/testimonials" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>آراء العملاء (صور)</Link>
+              <Link href="/admin/testimonials" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/testimonials') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>آراء العملاء (صور)</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/coupons" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>أكواد الخصم</Link>
+              <Link href="/admin/coupons" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/coupons') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أكواد الخصم</Link>
             </li>
           </ul>
           <button 
