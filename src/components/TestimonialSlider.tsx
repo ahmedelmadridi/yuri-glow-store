@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -75,11 +75,11 @@ export default function TestimonialSlider({ testimonials }: { testimonials: Test
         }}
         className="hide-scrollbar"
       >
-        <style>{
+        <style>{`
           .hide-scrollbar::-webkit-scrollbar {
             display: none;
           }
-        }</style>
+        `}</style>
 
         {testimonials.map((testi) => (
           <div key={testi.id} style={{
