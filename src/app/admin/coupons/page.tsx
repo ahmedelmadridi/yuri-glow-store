@@ -55,8 +55,8 @@ export default async function AdminCouponsPage() {
       </div>
 
       {/* Coupons Table */}
-      <div style={{ backgroundColor: 'white', borderRadius: 'var(--border-radius-lg)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div style={{ backgroundColor: 'white', borderRadius: 'var(--border-radius-lg)', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid var(--color-border)', textAlign: 'right' }}>
               <th style={{ padding: '16px' }}>الكود</th>
