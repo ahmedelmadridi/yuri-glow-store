@@ -40,3 +40,23 @@ export async function upsertProduct(productData: any) {
     return { success: false, error: error.message };
   }
 }
+
+export async function deleteProduct(productId: number) {
+  try {
+    const { error } = await supabaseAdmin
+      .from('products')
+      .delete()
+      .eq('id', productId);
+      
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    revalidatePath('/', 'layout');
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error('Delete Product Error:', error);
+    return { success: false, error: error.message };
+  }
+}

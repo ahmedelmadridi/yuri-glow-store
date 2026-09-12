@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
+import DeleteProductButton from './DeleteProductButton';
 
 export const revalidate = 0;
 
@@ -52,10 +53,11 @@ export default async function AdminProductsPage() {
                   <td style={{ padding: 'var(--spacing-md)', fontWeight: 'bold', color: product.stock_quantity <= 5 ? '#e74c3c' : 'var(--color-text)' }}>
                     {product.stock_quantity ?? 0}
                   </td>
-                  <td style={{ padding: 'var(--spacing-md)' }}>
-                    <Link href={`/admin/products/${product.id}/edit`} style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 'bold' }}>
+                  <td style={{ padding: 'var(--spacing-md)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <Link href={`/admin/products/${product.id}/edit`} style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 'bold', padding: '6px 12px', backgroundColor: '#e3f2fd', borderRadius: '4px' }}>
                       تعديل
                     </Link>
+                    <DeleteProductButton productId={product.id} productName={product.name} />
                   </td>
                 </tr>
               ))}
