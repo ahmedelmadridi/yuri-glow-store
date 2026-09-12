@@ -8,8 +8,15 @@ import WishlistHeaderLink from './WishlistHeaderLink';
 
 import AnnouncementBar from './AnnouncementBar';
 
+import { usePathname } from 'next/navigation';
+
 export default function Header() {
   const { totalItems } = useCart();
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <header className="site-header" style={{ padding: 0 }}>

@@ -1,15 +1,21 @@
+"use client";
+
 import Link from 'next/link';
 import styles from './layout.module.css';
-import { headers } from 'next/headers';
+import { usePathname } from 'next/navigation';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/admin/login';
+
   return (
     <div className={styles.adminLayout}>
       {/* Sidebar */}
+      {!isLoginPage && (
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h2>Yuri Glow Admin</h2>
@@ -43,9 +49,10 @@ export default function AdminLayout({
           </Link>
         </nav>
       </aside>
+      )}
 
       {/* Main Content */}
-      <main className={styles.mainContent}>
+      <main className={styles.mainContent} style={isLoginPage ? { marginRight: 0 } : {}}>
         {children}
       </main>
     </div>
