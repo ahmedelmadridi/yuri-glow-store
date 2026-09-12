@@ -44,7 +44,30 @@ export default function AdminLayout({
               <Link href="/admin/coupons" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>أكواد الخصم</Link>
             </li>
           </ul>
-          <Link href="/" className={styles.navLink} style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none' }}>
+          <button 
+            onClick={() => {
+              document.cookie = "admin_session=; path=/; max-age=0; SameSite=Lax";
+              window.location.href = '/admin/login';
+            }}
+            style={{ 
+              marginTop: 'auto', 
+              borderTop: '1px solid rgba(255,255,255,0.1)', 
+              display: 'block', 
+              padding: '12px 16px', 
+              color: '#ff6b6b', 
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              width: '100%',
+              textAlign: 'right',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 'bold'
+            }}
+          >
+            تسجيل الخروج
+          </button>
+          <Link href="/" className={styles.navLink} style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none' }}>
             العودة للمتجر
           </Link>
         </nav>
