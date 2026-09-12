@@ -3,11 +3,37 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function trackOrderByPhone(phone: string) {
-  const cleanPhone = phone.trim();
+  const cleanPhone = phone.trim().replace(/\s+/g, '');
   
   if (!cleanPhone || cleanPhone.length < 8) {
     return { error: 'يرجى إدخال رقم هاتف صحيح' };
   }
+
+  let basePhone = cleanPhone;
+  if (basePhone.startsWith('+20')) {
+    basePhone = basePhone.substring(3);
+  } else if (basePhone.startsWith('+2')) {
+    basePhone = basePhone.substring(2);
+  } else if (basePhone.startsWith('0020')) {
+    basePhone = basePhone.substring(4);
+  }
+
+  if (basePhone.startsWith('0')) {
+    basePhone = basePhone.substring(1);
+  }
+
+  const possiblePhones = Array.from(new Set([
+    cleanPhone,
+    basePhone,
+    '0' + basePhone,
+    '+2' + basePhone,
+    '+20' + basePhone,
+    '+20' + '0' + basePhone,
+    '20' + basePhone,
+    '20' + '0' + basePhone,
+    '0020' + basePhone,
+    '0020' + '0' + basePhone,
+  ]));
 
   const { data, error } = await supabaseAdmin
     .from('orders')
@@ -21,7 +47,7 @@ export async function trackOrderByPhone(phone: string) {
         products(name)
       )
     `)
-    .eq('phone', cleanPhone)
+    .in('phone', possiblePhones)
     .order('created_at', { ascending: false })
     .limit(5);
 
