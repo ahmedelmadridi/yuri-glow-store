@@ -190,4 +190,8 @@
   .heroContent > div {
     justify-content: center;
   }
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
 }

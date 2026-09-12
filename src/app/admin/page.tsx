@@ -119,7 +119,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   // Sort best selling products
   const bestSellers = Object.values(productSalesCount)
     .sort((a, b) => b.quantity - a.quantity)
-    .slice(0, 5);
+    .slice(0, 6);
 
   // Inventory Alerts (Products with stock <= 5)
   const lowStockProducts = products?.filter(p => (p.stock_quantity || 0) <= 5) || [];

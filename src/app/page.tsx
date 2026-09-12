@@ -5,8 +5,8 @@ import styles from './page.module.css';
 
 // Mock data for featured products
 import { getProducts } from '@/data/products';
-import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
+import SortableProductGrid from '@/components/SortableProductGrid';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import HeroSlider from '@/components/HeroSlider';
 
@@ -14,7 +14,7 @@ export const revalidate = 3600; // Cache the home page for 1 hour
 
 export default async function Home() {
   const allProducts = await getProducts();
-  let featuredProducts = allProducts.slice(0, 4);
+  let featuredProducts = allProducts.slice(0, 6);
 
   // Fetch real best sellers
   const { data: orderItems } = await supabaseAdmin
@@ -36,11 +36,31 @@ export default async function Home() {
       .filter(Boolean) as typeof allProducts;
       
     if (realBestSellers.length > 0) {
-      // Pad with other products if less than 4 best sellers exist
+      // Pad with other products if less than 6 best sellers exist
       featuredProducts = [...realBestSellers, ...allProducts]
         .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
-        .slice(0, 4);
+        .slice(0, 6);
     }
+  }
+
+  // Fetch ratings
+  const { data: reviews } = await supabaseAdmin
+    .from('product_reviews')
+    .select('product_id, rating')
+    .eq('is_approved', true);
+    
+  const productRatings: Record<number, number> = {};
+  if (reviews && reviews.length > 0) {
+    const sums: Record<number, { sum: number, count: number }> = {};
+    reviews.forEach(r => {
+      if (!sums[r.product_id]) sums[r.product_id] = { sum: 0, count: 0 };
+      sums[r.product_id].sum += r.rating;
+      sums[r.product_id].count += 1;
+    });
+    Object.keys(sums).forEach(id => {
+      const numId = Number(id);
+      productRatings[numId] = sums[numId].sum / sums[numId].count;
+    });
   }
 
   // Fetch hero banners
@@ -67,11 +87,7 @@ export default async function Home() {
             <SearchBar />
           </Suspense>
           <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
-          <div className={styles.productGrid}>
-          {featuredProducts.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+          <SortableProductGrid products={featuredProducts.slice(0, 6)} productRatings={productRatings} />
         </div>
       </section>
     </>
