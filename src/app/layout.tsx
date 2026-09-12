@@ -75,7 +75,7 @@ export default function RootLayout({
         <Footer />
         </CartProvider>
         <Analytics />
-        <GoogleAnalytics gaId="G-GHT70K89VB" />
+        <GoogleAnalytics gaId="G-L115PFDDW7" />
       </body>
     </html>
   );
