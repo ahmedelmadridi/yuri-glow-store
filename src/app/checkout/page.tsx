@@ -384,7 +384,7 @@ ${orderItemsText}
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
                   <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
-                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>012 7788 5159</strong></li>
+                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
                   <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
