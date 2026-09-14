@@ -212,6 +212,20 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         </div>
 
       </div>
+
+      {/* Google Analytics Dashboard */}
+      <div style={{ marginTop: 'var(--spacing-2xl)', backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+        <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>إحصائيات جوجل التفصيلية 📊</h2>
+        <div style={{ width: '100%', height: '850px' }}>
+          <iframe 
+            src="https://datastudio.google.com/embed/reporting/abbced74-2123-47aa-8ac1-c70255d8aa13/page/1M" 
+            frameBorder="0" 
+            style={{ border: 0, width: '100%', height: '100%' }} 
+            allowFullScreen 
+            sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+          </iframe>
+        </div>
+      </div>
     </div>
   );
 }
