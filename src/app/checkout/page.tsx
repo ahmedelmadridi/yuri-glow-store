@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
-import { sendTelegramNotification } from '@/app/actions/telegram';
+import { sendTelegramOrder } from '@/app/actions/telegram';
 import { validateCoupon } from '@/app/actions/coupons';
 import { sendGAEvent } from '@next/third-parties/google';
 import styles from './page.module.css';
@@ -32,9 +32,10 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     notes: '',
-    paymentMethod: 'wallet', // Only 'wallet' is supported now
+    paymentMethod: 'cod',
     walletReference: ''
   });
+  const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null);
 
   // Redirect if cart is empty (but not if we just submitted the order)
   useEffect(() => {
@@ -88,6 +89,8 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const submitter = (e.nativeEvent as any).submitter as HTMLButtonElement;
+    const isWhatsApp = submitter?.value === 'whatsapp';
     setIsSubmitting(true);
     setErrorMsg('');
     
@@ -142,7 +145,6 @@ export default function CheckoutPage() {
 
     if (itemsError) {
       console.error('Order Items Error:', itemsError);
-      // We should ideally rollback or alert, but for MVP we log it.
     }
     
     // 3. Send Telegram Notification
@@ -164,9 +166,21 @@ ${orderItemsText}
 
 💰 <b>الإجمالي:</b> ${formatPrice(finalTotal)} (بما في ذلك الشحن)
       `;
-      await sendTelegramNotification(message);
+      
+      const tgFormData = new FormData();
+      tgFormData.append('message', message);
+      if (paymentReceipt) {
+        tgFormData.append('photo', paymentReceipt);
+      }
+      await sendTelegramOrder(tgFormData);
     } catch (e) {
       console.error("Failed to send telegram notification", e);
+    }
+
+    if (isWhatsApp) {
+      const waOrderItems = cart.map(item => `- ${item.product.name} (x${item.quantity})`).join('%0A');
+      const waText = `مرحباً، أريد تأكيد طلبي من متجر يوري جلو.%0A%0A👤 الاسم: ${formData.name}%0A📱 الهاتف: ${formData.phone}%0A📍 المحافظة: ${selectedGov}%0A🏠 العنوان: ${formData.address}%0A🛍️ المنتجات:%0A${waOrderItems}%0A💰 الإجمالي: ${formatPrice(finalTotal)}`;
+      window.open(`https://wa.me/201505432061?text=${waText}`, '_blank');
     }
     
     // Facebook Pixel Purchase Event
@@ -338,37 +352,95 @@ ${orderItemsText}
           </div>
           
           <div style={{ marginBottom: 'var(--spacing-md)', backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع: الدفع الإلكتروني 📱</h3>
+            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع</h3>
             
-            <div style={{ padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
-              <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
-                <strong>برجاء تحويل إجمالي المبلغ على أحد الأرقام التالية لتأكيد طلبك:</strong>
-              </p>
-              <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
-                <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
-                <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>012 7788 5159</strong></li>
-              </ul>
-              <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                 <input 
-                  type="text" 
-                  id="walletReference" 
-                  name="walletReference" 
-                  required 
-                  value={formData.walletReference} 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="cod" 
+                  checked={formData.paymentMethod === 'cod'} 
                   onChange={handleInputChange} 
-                  placeholder="مثال: 01012345678"
-                  style={{ border: '1px solid #27ae60' }}
                 />
-              </div>
+                الدفع عند الاستلام 💵
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="wallet" 
+                  checked={formData.paymentMethod === 'wallet'} 
+                  onChange={handleInputChange} 
+                />
+                دفع إلكتروني (انستاباي/محفظة) 📱
+              </label>
             </div>
+            
+            {formData.paymentMethod === 'wallet' && (
+              <div style={{ padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
+                <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
+                  <strong>برجاء تحويل إجمالي المبلغ على أحد الأرقام التالية لتأكيد طلبك:</strong>
+                </p>
+                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
+                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
+                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>012 7788 5159</strong></li>
+                </ul>
+                <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
+                  <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
+                  <input 
+                    type="text" 
+                    id="walletReference" 
+                    name="walletReference" 
+                    required={formData.paymentMethod === 'wallet'} 
+                    value={formData.walletReference} 
+                    onChange={handleInputChange} 
+                    placeholder="مثال: 01012345678"
+                    style={{ border: '1px solid #27ae60' }}
+                  />
+                </div>
+                <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                  <label htmlFor="paymentReceipt" style={{ fontSize: '0.9rem', color: '#1e8449' }}>إرفاق سكرين شوت للتحويل (اختياري)</label>
+                  <input 
+                    type="file" 
+                    id="paymentReceipt" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setPaymentReceipt(e.target.files[0]);
+                      }
+                    }}
+                    style={{ border: '1px solid #27ae60', padding: '8px', backgroundColor: 'white', borderRadius: '4px', width: '100%' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           
           {errorMsg && <div style={{ color: 'red', marginBottom: 'var(--spacing-md)' }}>{errorMsg}</div>}
           
-          <button type="submit" className={`btn-primary ${styles.submitBtn}`} disabled={isSubmitting}>
-            {isSubmitting ? 'جاري تأكيد الطلب...' : 'تأكيد الطلب'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button 
+              type="submit" 
+              name="submitAction"
+              value="whatsapp"
+              className={`btn-primary ${styles.submitBtn}`} 
+              disabled={isSubmitting}
+              style={{ backgroundColor: '#25D366', borderColor: '#25D366' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px', verticalAlign: 'middle' }}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              {isSubmitting ? 'جاري تأكيد الطلب...' : 'تأكيد الطلب عبر الواتساب'}
+            </button>
+            <button 
+              type="submit" 
+              name="submitAction"
+              value="normal"
+              className={`btn-primary ${styles.submitBtn}`} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'جاري تأكيد الطلب...' : 'تأكيد الطلب فقط'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

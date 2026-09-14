@@ -25,3 +25,32 @@ export async function sendTelegramNotification(message: string) {
     console.error('Error sending Telegram notification:', error);
   }
 }
+
+export async function sendTelegramOrder(formData: FormData) {
+  try {
+    const message = formData.get('message') as string;
+    const photo = formData.get('photo') as File | null;
+
+    if (photo && photo.size > 0) {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+      const tgFormData = new FormData();
+      tgFormData.append('chat_id', TELEGRAM_CHAT_ID);
+      tgFormData.append('caption', message);
+      tgFormData.append('parse_mode', 'HTML');
+      tgFormData.append('photo', photo);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: tgFormData,
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send Telegram photo:', await response.text());
+      }
+    } else {
+      await sendTelegramNotification(message);
+    }
+  } catch (error) {
+    console.error('Error sending Telegram order:', error);
+  }
+}
