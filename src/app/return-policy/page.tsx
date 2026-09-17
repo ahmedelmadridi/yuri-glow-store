@@ -57,7 +57,14 @@ export default function ReturnPolicyPage() {
         </p>
 
         <h3 style={{ color: 'var(--color-primary)', marginTop: 'var(--spacing-xl)', marginBottom: 'var(--spacing-sm)' }}>
-          5. خطوات الاسترجاع
+          5. سياسة الدفع عند الاستلام
+        </h3>
+        <p style={{ marginBottom: 'var(--spacing-md)' }}>
+          عند اختيار طريقة "الدفع عند الاستلام"، يُشترط تحويل قيمة الشحن مقدماً (عبر انستاباي أو المحافظ الإلكترونية) لتأكيد الطلب، على أن يتم دفع قيمة المنتجات فقط عند الاستلام. في حال إلغاء الطلب بعد شحنه، لا يتم استرداد قيمة الشحن.
+        </p>
+
+        <h3 style={{ color: 'var(--color-primary)', marginTop: 'var(--spacing-xl)', marginBottom: 'var(--spacing-sm)' }}>
+          6. خطوات الاسترجاع
         </h3>
         <p style={{ marginBottom: 'var(--spacing-md)' }}>
           لبدء عملية الاسترجاع، يرجى التواصل معنا عبر الواتساب على الرقم المخصص لخدمة العملاء الموجود في أسفل الموقع، مع تزويدنا برقم الطلب وصور للمنتج.

@@ -68,6 +68,9 @@ export default function CartPage() {
             <span>التوصيل</span>
             <span>يتم حسابه عند الدفع</span>
           </div>
+          <div style={{ fontSize: '0.8rem', color: '#856404', backgroundColor: '#fff3cd', padding: '8px', borderRadius: '4px', marginTop: '8px', textAlign: 'center' }}>
+            <strong>تنويه:</strong> في حال اختيار "الدفع عند الاستلام"، يتم تحويل قيمة الشحن مقدماً (عبر انستاباي أو المحافظ الإلكترونية) لتأكيد الطلب.
+          </div>
           <hr className={styles.divider} />
           <div className={`${styles.summaryRow} ${styles.totalRow}`}>
             <span>الإجمالي (بدون الشحن)</span>

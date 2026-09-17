@@ -87,23 +87,23 @@ export default function CheckoutPage() {
     }
   };
 
+  // Calculate totals
+  let subtotal = totalPrice;
+  if (appliedCoupon) {
+    subtotal = Math.round(subtotal - (subtotal * (appliedCoupon.discount / 100)));
+  }
+  
+  // Free shipping if subtotal >= 3000 AND no coupon is applied (using totalPrice as original code did)
+  const actualShippingCost = (totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost;
+  
+  const finalTotal = subtotal + actualShippingCost;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const submitter = (e.nativeEvent as any).submitter as HTMLButtonElement;
     const isWhatsApp = submitter?.value === 'whatsapp';
     setIsSubmitting(true);
     setErrorMsg('');
-    
-    // Parse total to int for safety
-    let subtotal = totalPrice;
-    if (appliedCoupon) {
-      subtotal = Math.round(subtotal - (subtotal * (appliedCoupon.discount / 100)));
-    }
-    
-    // Free shipping if subtotal >= 3000 AND no coupon is applied
-    const actualShippingCost = (totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost;
-    
-    const finalTotal = subtotal + actualShippingCost;
 
     const orderId = crypto.randomUUID();
 
@@ -118,7 +118,7 @@ export default function CheckoutPage() {
         address: formData.address,
         notes: formData.notes + 
                (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : '') +
-               (formData.paymentMethod === 'wallet' ? `\n[دفع إلكتروني: انستاباي/محفظة - الرقم المرجعي: ${formData.walletReference}]` : '\n[طريقة الدفع: عند الاستلام]'),
+               (formData.paymentMethod === 'wallet' ? `\n[دفع إلكتروني: انستاباي/محفظة - الرقم المرجعي: ${formData.walletReference}]` : `\n[طريقة الدفع: عند الاستلام${actualShippingCost > 0 ? ` - تم دفع الشحن مقدماً من: ${formData.walletReference || 'لم يحدد'}` : ''}]`),
         subtotal_amount: subtotal,
         shipping_cost: actualShippingCost,
         total_amount: finalTotal,
@@ -150,6 +150,13 @@ export default function CheckoutPage() {
     // 3. Send Telegram Notification
     try {
       const orderItemsText = cart.map(item => `- ${item.product.name} (x${item.quantity})`).join('\n');
+      let paymentText = '';
+      if (formData.paymentMethod === 'wallet') {
+        paymentText = `انستاباي / محفظة إلكترونية\n🔢 <b>الرقم المحول منه:</b> ${formData.walletReference}`;
+      } else {
+        paymentText = `الدفع عند الاستلام\n${actualShippingCost > 0 ? `(تم دفع الشحن ${actualShippingCost} مقدماً من: ${formData.walletReference || 'لم يحدد'})` : ''}`;
+      }
+
       const message = `
 📦 <b>طلب جديد!</b> (Yuri Glow)
 
@@ -158,7 +165,7 @@ export default function CheckoutPage() {
 📍 <b>المحافظة:</b> ${selectedGov}
 🏠 <b>العنوان:</b> ${formData.address}
 📝 <b>ملاحظات:</b> ${formData.notes || 'لا يوجد'}
-💳 <b>طريقة الدفع:</b> ${formData.paymentMethod === 'wallet' ? `انستاباي / محفظة إلكترونية\n🔢 <b>الرقم المحول منه:</b> ${formData.walletReference}` : 'الدفع عند الاستلام'}
+💳 <b>طريقة الدفع:</b> ${paymentText}
 🎟️ <b>كود الخصم:</b> ${appliedCoupon ? `${appliedCoupon.code} (${appliedCoupon.discount}%)` : 'لا يوجد'}
 
 🛍️ <b>المنتجات:</b>
@@ -179,7 +186,13 @@ ${orderItemsText}
 
     if (isWhatsApp) {
       const waOrderItems = cart.map(item => `- ${item.product.name} (x${item.quantity})`).join('%0A');
-      const waText = `مرحباً، أريد تأكيد طلبي من متجر يوري جلو.%0A%0A👤 الاسم: ${formData.name}%0A📱 الهاتف: ${formData.phone}%0A📍 المحافظة: ${selectedGov}%0A🏠 العنوان: ${formData.address}%0A🛍️ المنتجات:%0A${waOrderItems}%0A💰 الإجمالي: ${formatPrice(finalTotal)}`;
+      let waPaymentText = formData.paymentMethod === 'wallet' ? 'انستاباي / محفظة إلكترونية' : 'الدفع عند الاستلام';
+      if (formData.paymentMethod === 'cod' && actualShippingCost > 0) {
+        waPaymentText += ` (تم دفع الشحن ${actualShippingCost} مقدماً من: ${formData.walletReference || 'لم يحدد'})`;
+      } else if (formData.paymentMethod === 'wallet') {
+        waPaymentText += ` (الرقم المحول منه: ${formData.walletReference || 'لم يحدد'})`;
+      }
+      const waText = `مرحباً، أريد تأكيد طلبي من متجر يوري جلو.%0A%0A👤 الاسم: ${formData.name}%0A📱 الهاتف: ${formData.phone}%0A📍 المحافظة: ${selectedGov}%0A🏠 العنوان: ${formData.address}%0A💳 طريقة الدفع: ${waPaymentText}%0A🛍️ المنتجات:%0A${waOrderItems}%0A💰 الإجمالي: ${formatPrice(finalTotal)}`;
       window.open(`https://wa.me/201505432061?text=${waText}`, '_blank');
     }
     
@@ -377,20 +390,59 @@ ${orderItemsText}
               </label>
             </div>
             
+            {formData.paymentMethod === 'cod' && actualShippingCost > 0 && (
+              <div style={{ padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeeba', marginBottom: '16px' }}>
+                <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#856404' }}>
+                  <strong>تنبيه هام:</strong> لتأكيد طلبك بنظام "الدفع عند الاستلام"، برجاء تحويل قيمة الشحن (<strong>{formatPrice(actualShippingCost)}</strong>) مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - actualShippingCost)}</strong>) عند الاستلام.
+                </p>
+                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
+                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
+                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong></li>
+                </ul>
+                <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
+                  <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد دفع الشحن *</label>
+                  <input 
+                    type="text" 
+                    id="walletReferenceCod" 
+                    name="walletReference" 
+                    required={formData.paymentMethod === 'cod' && actualShippingCost > 0} 
+                    value={formData.walletReference} 
+                    onChange={handleInputChange} 
+                    placeholder="مثال: 01012345678"
+                    style={{ border: '1px solid #ffeeba' }}
+                  />
+                </div>
+                <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                  <label htmlFor="paymentReceiptCod" style={{ fontSize: '0.9rem', color: '#856404' }}>إرفاق سكرين شوت للتحويل (اختياري)</label>
+                  <input 
+                    type="file" 
+                    id="paymentReceiptCod" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setPaymentReceipt(e.target.files[0]);
+                      }
+                    }}
+                    style={{ border: '1px solid #ffeeba', padding: '8px', backgroundColor: 'white', borderRadius: '4px', width: '100%' }}
+                  />
+                </div>
+              </div>
+            )}
+
             {formData.paymentMethod === 'wallet' && (
               <div style={{ padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
                 <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
-                  <strong>برجاء تحويل إجمالي المبلغ على أحد الأرقام التالية لتأكيد طلبك:</strong>
+                  <strong>برجاء تحويل إجمالي المبلغ (<strong>{formatPrice(finalTotal)}</strong>) على أحد الأرقام التالية لتأكيد طلبك:</strong>
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
                   <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
                   <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
-                  <label htmlFor="walletReference" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
+                  <label htmlFor="walletReferenceWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
                   <input 
                     type="text" 
-                    id="walletReference" 
+                    id="walletReferenceWallet" 
                     name="walletReference" 
                     required={formData.paymentMethod === 'wallet'} 
                     value={formData.walletReference} 
@@ -400,10 +452,10 @@ ${orderItemsText}
                   />
                 </div>
                 <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                  <label htmlFor="paymentReceipt" style={{ fontSize: '0.9rem', color: '#1e8449' }}>إرفاق سكرين شوت للتحويل (اختياري)</label>
+                  <label htmlFor="paymentReceiptWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>إرفاق سكرين شوت للتحويل (اختياري)</label>
                   <input 
                     type="file" 
-                    id="paymentReceipt" 
+                    id="paymentReceiptWallet" 
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
