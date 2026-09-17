@@ -49,6 +49,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       images: [product.image],
     },
+    alternates: {
+      canonical: `https://www.yurigloweg.com/products/${productSlug}`,
+    },
   };
 }
 
