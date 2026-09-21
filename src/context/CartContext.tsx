@@ -70,6 +70,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       ]
     });
 
+    // Send Meta Pixel event for add to cart
+    import('@/utils/fpixel').then(({ trackEvent }) => {
+      trackEvent('AddToCart', {
+        content_ids: [product.id],
+        content_type: 'product',
+        value: product.price * quantity,
+        currency: 'EGP',
+      });
+    });
+
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.product.id === product.id);
       

@@ -53,6 +53,16 @@ export default function CheckoutPage() {
           quantity: item.quantity
         }))
       });
+
+      // Fire Meta Pixel event for begin checkout
+      import('@/utils/fpixel').then(({ trackEvent }) => {
+        trackEvent('InitiateCheckout', {
+          content_ids: cart.map(item => item.product.id),
+          content_type: 'product',
+          value: totalPrice,
+          currency: 'EGP',
+        });
+      });
     }
   }, [cart, isSubmitted, router, totalPrice]);
 

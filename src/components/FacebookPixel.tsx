@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
-const FB_PIXEL_ID = '1795208951817361';
+const FB_PIXEL_ID = '1870746484266198';
 
 export default function FacebookPixel() {
   const pathname = usePathname();
