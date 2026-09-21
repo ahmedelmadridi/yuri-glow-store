@@ -2,29 +2,25 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 const FB_PIXEL_ID = '1870746484266198';
 
 export default function FacebookPixel() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [loaded, setLoaded] = useState(false);
-
   useEffect(() => {
-    if (!loaded) return;
-    
     // This tracks page views when the route changes
-    // @ts-ignore
-    window.fbq('track', 'PageView');
-  }, [pathname, searchParams, loaded]);
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'PageView');
+    }
+  }, [pathname, searchParams]);
 
   return (
     <div>
       <Script
         id="fb-pixel"
         strategy="afterInteractive"
-        onLoad={() => setLoaded(true)}
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s)
