@@ -425,7 +425,7 @@ ${orderItemsText}
                   <strong>تنبيه هام:</strong> لتأكيد طلبك بنظام "الدفع عند الاستلام"، برجاء تحويل قيمة الشحن (<strong>{formatPrice(actualShippingCost)}</strong>) مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - actualShippingCost)}</strong>) عند الاستلام.
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong> <CopyButton text="ahmed_elmadridi@instapay" color="#856404" /></li>
+                  <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
                   <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
@@ -465,7 +465,7 @@ ${orderItemsText}
                   <strong>برجاء تحويل إجمالي المبلغ (<strong>{formatPrice(finalTotal)}</strong>) على أحد الأرقام التالية لتأكيد طلبك:</strong>
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong> <CopyButton text="ahmed_elmadridi@instapay" color="#1e8449" /></li>
+                  <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#1e8449" /></li>
                   <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#1e8449" /></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
