@@ -12,6 +12,39 @@ import { validateCoupon } from '@/app/actions/coupons';
 import { sendGAEvent } from '@next/third-parties/google';
 import styles from './page.module.css';
 
+function CopyButton({ text, color }: { text: string, color: string }) {
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  return (
+    <button 
+      type="button" 
+      onClick={handleCopy} 
+      style={{ 
+        background: 'none', 
+        border: `1px solid ${color}`, 
+        borderRadius: '4px', 
+        padding: '2px 6px', 
+        fontSize: '0.75rem', 
+        marginRight: '8px', 
+        cursor: 'pointer', 
+        color: color,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px'
+      }}
+      title="نسخ"
+    >
+      {copied ? '✅ تم' : '📋 نسخ'}
+    </button>
+  );
+}
+
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart();
   const router = useRouter();
@@ -392,8 +425,8 @@ ${orderItemsText}
                   <strong>تنبيه هام:</strong> لتأكيد طلبك بنظام "الدفع عند الاستلام"، برجاء تحويل قيمة الشحن (<strong>{formatPrice(actualShippingCost)}</strong>) مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - actualShippingCost)}</strong>) عند الاستلام.
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
-                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong></li>
+                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong> <CopyButton text="ahmed_elmadridi@instapay" color="#856404" /></li>
+                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
                   <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد دفع الشحن *</label>
@@ -409,11 +442,12 @@ ${orderItemsText}
                   />
                 </div>
                 <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                  <label htmlFor="paymentReceiptCod" style={{ fontSize: '0.9rem', color: '#856404' }}>إرفاق سكرين شوت للتحويل (اختياري)</label>
+                  <label htmlFor="paymentReceiptCod" style={{ fontSize: '0.9rem', color: '#856404' }}>إرفاق سكرين شوت للتحويل *</label>
                   <input 
                     type="file" 
                     id="paymentReceiptCod" 
                     accept="image/*"
+                    required={formData.paymentMethod === 'cod' && actualShippingCost > 0}
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setPaymentReceipt(e.target.files[0]);
@@ -431,8 +465,8 @@ ${orderItemsText}
                   <strong>برجاء تحويل إجمالي المبلغ (<strong>{formatPrice(finalTotal)}</strong>) على أحد الأرقام التالية لتأكيد طلبك:</strong>
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong></li>
-                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong></li>
+                  <li>انستاباي: <strong>ahmed_elmadridi@instapay</strong> <CopyButton text="ahmed_elmadridi@instapay" color="#1e8449" /></li>
+                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#1e8449" /></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
                   <label htmlFor="walletReferenceWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
@@ -448,11 +482,12 @@ ${orderItemsText}
                   />
                 </div>
                 <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                  <label htmlFor="paymentReceiptWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>إرفاق سكرين شوت للتحويل (اختياري)</label>
+                  <label htmlFor="paymentReceiptWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>إرفاق سكرين شوت للتحويل *</label>
                   <input 
                     type="file" 
                     id="paymentReceiptWallet" 
                     accept="image/*"
+                    required={formData.paymentMethod === 'wallet'}
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setPaymentReceipt(e.target.files[0]);
