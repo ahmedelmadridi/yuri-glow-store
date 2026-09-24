@@ -143,6 +143,14 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number
+    const digitsOnly = formData.phone.replace(/\D/g, '');
+    if (digitsOnly.length < 11) {
+      setErrorMsg('رقم الهاتف يجب أن يتكون من 11 رقماً على الأقل.');
+      return;
+    }
+    
     setIsSubmitting(true);
     setErrorMsg('');
 
@@ -274,7 +282,7 @@ ${orderItemsText}
           
           <div className={styles.formGroup}>
             <label htmlFor="phone">رقم الهاتف *</label>
-            <input type="tel" id="phone" name="phone" required value={formData.phone} onChange={handleInputChange} dir="ltr" style={{ textAlign: 'right' }} />
+            <input type="tel" id="phone" name="phone" required minLength={11} title="يجب أن يتكون رقم الهاتف من 11 رقماً على الأقل" value={formData.phone} onChange={handleInputChange} dir="ltr" style={{ textAlign: 'right' }} />
           </div>
 
           <div className={styles.formGroup}>
