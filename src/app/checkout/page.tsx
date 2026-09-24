@@ -65,7 +65,7 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     notes: '',
-    paymentMethod: 'cod',
+    paymentMethod: 'wallet',
     walletReference: ''
   });
   const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null);
