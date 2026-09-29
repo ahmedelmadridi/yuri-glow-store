@@ -15,7 +15,8 @@ export const revalidate = 3600; // Cache the home page for 1 hour
 
 export default async function Home() {
   const allProducts = await getProducts();
-  let featuredProducts = allProducts.slice(0, 6);
+  const inStockProducts = allProducts.filter(p => !(p.stock_quantity !== undefined && p.stock_quantity !== null && p.stock_quantity <= 0));
+  let featuredProducts = inStockProducts.slice(0, 6);
 
   // Fetch real best sellers
   const { data: orderItems } = await supabaseAdmin
@@ -33,12 +34,12 @@ export default async function Home() {
       .map(entry => Number(entry[0]));
       
     const realBestSellers = sortedProductIds
-      .map(id => allProducts.find(p => p.id === id))
-      .filter(Boolean) as typeof allProducts;
+      .map(id => inStockProducts.find(p => p.id === id))
+      .filter(Boolean) as typeof inStockProducts;
       
     if (realBestSellers.length > 0) {
       // Pad with other products if less than 6 best sellers exist
-      featuredProducts = [...realBestSellers, ...allProducts]
+      featuredProducts = [...realBestSellers, ...inStockProducts]
         .filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
         .slice(0, 6);
     }
