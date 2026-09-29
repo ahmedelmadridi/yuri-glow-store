@@ -41,6 +41,18 @@ export default async function ProductsPage({
     });
   }
 
+  // Fetch sales counts for best sellers sorting
+  const { data: orderItems } = await supabaseAdmin
+    .from('order_items')
+    .select('product_id, quantity');
+
+  const productSales: Record<number, number> = {};
+  if (orderItems && orderItems.length > 0) {
+    orderItems.forEach(item => {
+      productSales[item.product_id] = (productSales[item.product_id] || 0) + item.quantity;
+    });
+  }
+
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)' }}>
       <h1 className={styles.sectionTitle}>منتجاتنا</h1>
@@ -55,7 +67,7 @@ export default async function ProductsPage({
           لا توجد منتجات مطابقة لبحثك.
         </div>
       ) : (
-        <SortableProductGrid products={products} productRatings={productRatings} />
+        <SortableProductGrid products={products} productRatings={productRatings} productSales={productSales} />
       )}
     </div>
   );

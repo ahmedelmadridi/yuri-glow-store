@@ -8,11 +8,12 @@ import styles from '@/app/page.module.css';
 interface SortableProductGridProps {
   products: Product[];
   productRatings?: Record<number, number>; // productId -> average rating
+  productSales?: Record<number, number>; // productId -> total sales count
 }
 
-type SortOption = 'default' | 'price_asc' | 'price_desc' | 'rating';
+type SortOption = 'default' | 'price_asc' | 'price_desc' | 'rating' | 'best_seller';
 
-export default function SortableProductGrid({ products, productRatings = {} }: SortableProductGridProps) {
+export default function SortableProductGrid({ products, productRatings = {}, productSales = {} }: SortableProductGridProps) {
   const [sortOption, setSortOption] = useState<SortOption>('default');
 
   const sortedProducts = [...products].sort((a, b) => {
@@ -24,6 +25,10 @@ export default function SortableProductGrid({ products, productRatings = {} }: S
       const ratingA = productRatings[a.id] || 0;
       const ratingB = productRatings[b.id] || 0;
       return ratingB - ratingA;
+    } else if (sortOption === 'best_seller') {
+      const salesA = productSales[a.id] || 0;
+      const salesB = productSales[b.id] || 0;
+      return salesB - salesA;
     }
     // 'default' - keep original order
     return 0;
@@ -50,6 +55,7 @@ export default function SortableProductGrid({ products, productRatings = {} }: S
             }}
           >
             <option value="default">الافتراضي</option>
+            <option value="best_seller">الأكثر مبيعاً</option>
             <option value="price_asc">السعر: من الأقل للأعلى</option>
             <option value="price_desc">السعر: من الأعلى للأقل</option>
             <option value="rating">الأعلى تقييماً</option>
