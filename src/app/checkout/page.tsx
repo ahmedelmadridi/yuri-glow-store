@@ -103,7 +103,8 @@ export default function CheckoutPage() {
           currency: 'EGP',
         });
       });
-    }
+      } // close if (!hasTrackedRef.current)
+    } // close else if
   }, [cart, isSubmitted, router, totalPrice]);
 
   const handleGovChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
