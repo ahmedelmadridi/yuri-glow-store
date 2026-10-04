@@ -32,7 +32,7 @@ export default function AdminLayout({
               <Link href="/admin/products" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/products') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة المنتجات</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/banners" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/banners') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة البنرات (الصور)</Link>
+              <Link href="/admin/design" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/design') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>تنسيق المتجر</Link>
             </li>
             <li style={{ marginBottom: '10px' }}>
               <Link href="/admin/announcements" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/announcements') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>شريط الأخبار الإعلاني</Link>

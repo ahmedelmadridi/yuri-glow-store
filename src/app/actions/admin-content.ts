@@ -148,3 +148,48 @@ export async function deleteScreenshotReview(id: string, fileName: string) {
   }
 }
 
+
+// --- Store Settings ---
+
+export async function getStoreSettings() {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('store_settings')
+      .select('*');
+      
+    // It's okay if the table doesn't exist yet, we just return empty array
+    if (error && error.code !== 'PGRST205') throw new Error(error.message);
+    return { success: true, data: data || [] };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateStoreSetting(key: string, value: string) {
+  try {
+    // Upsert logic: Check if exists, then update or insert
+    const { data: existing } = await supabaseAdmin
+      .from('store_settings')
+      .select('id')
+      .eq('key', key)
+      .maybeSingle();
+
+    let res;
+    if (existing) {
+      res = await supabaseAdmin
+        .from('store_settings')
+        .update({ value })
+        .eq('id', existing.id);
+    } else {
+      res = await supabaseAdmin
+        .from('store_settings')
+        .insert({ key, value });
+    }
+
+    if (res.error) throw new Error(res.error.message);
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}

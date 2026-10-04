@@ -55,13 +55,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { data: settings } = await supabaseAdmin.from('store_settings').select('*');
+  const colors = settings?.reduce((acc: any, s: any) => ({ ...acc, [s.key]: s.value }), {}) || {};
+
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" style={{
+      '--color-primary': colors.color_primary || undefined,
+      '--color-bg': colors.color_bg || undefined,
+      '--color-text': colors.color_text || undefined,
+    } as React.CSSProperties}>
       <body className={`${inter.variable} ${playfair.variable} ${cairo.variable}`}>
         <Suspense fallback={null}>
           <FacebookPixel />
