@@ -68,6 +68,7 @@ export default async function RootLayout({
   return (
     <html lang="ar" dir="rtl" style={{
       '--color-primary': colors.color_primary || undefined,
+      '--color-primary-dark': colors.color_primary_dark || undefined,
       '--color-bg': colors.color_bg || undefined,
       '--color-text': colors.color_text || undefined,
     } as React.CSSProperties}>

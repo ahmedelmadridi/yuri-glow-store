@@ -7,6 +7,7 @@ import { updateStoreSetting } from '@/app/actions/admin-content';
 export default function ColorManager({ initialSettings }: { initialSettings: any }) {
   const [colors, setColors] = useState({
     color_primary: initialSettings.color_primary || '#A88F48',
+    color_primary_dark: initialSettings.color_primary_dark || '#8c753b',
     color_bg: initialSettings.color_bg || '#FDFCF0',
     color_text: initialSettings.color_text || '#2B3024',
   });
@@ -56,6 +57,24 @@ export default function ColorManager({ initialSettings }: { initialSettings: any
               type="text" 
               value={colors.color_primary} 
               onChange={(e) => handleColorChange('color_primary', e.target.value)}
+              style={{ padding: '8px', border: '1px solid var(--color-border)', borderRadius: '4px', flex: 1 }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>اللون الأساسي الغامق (Primary Dark)</label>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <input 
+              type="color" 
+              value={colors.color_primary_dark} 
+              onChange={(e) => handleColorChange('color_primary_dark', e.target.value)}
+              style={{ width: '50px', height: '50px', cursor: 'pointer', border: 'none', padding: 0 }}
+            />
+            <input 
+              type="text" 
+              value={colors.color_primary_dark} 
+              onChange={(e) => handleColorChange('color_primary_dark', e.target.value)}
               style={{ padding: '8px', border: '1px solid var(--color-border)', borderRadius: '4px', flex: 1 }}
             />
           </div>
