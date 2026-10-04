@@ -52,12 +52,17 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     .select('id, name, stock_quantity, image')
     .order('stock_quantity', { ascending: true });
 
-  // Fetch store metrics (visits)
-  const { data: metrics } = await supabaseAdmin
+  // Fetch store metrics (visits, add to cart, initiate checkout)
+  const { data: metricsData } = await supabaseAdmin
     .from('store_metrics')
-    .select('total_visits')
-    .eq('id', 1)
-    .single();
+    .select('id, total_visits')
+    .in('id', [1, 2, 3]);
+
+  const metrics = {
+    visits: metricsData?.find(m => m.id === 1)?.total_visits || 0,
+    addToCart: metricsData?.find(m => m.id === 2)?.total_visits || 0,
+    initiateCheckout: metricsData?.find(m => m.id === 3)?.total_visits || 0,
+  };
 
   if (ordersError || productsError) {
     return <div>خطأ في جلب البيانات</div>;
@@ -66,7 +71,9 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   // Basic Stats
   const totalOrders = orders?.length || 0;
   const pendingOrders = orders?.filter(o => o.status === 'pending').length || 0;
-  const totalVisits = metrics?.total_visits || 0;
+  const totalVisits = metrics.visits;
+  const totalAddToCart = metrics.addToCart;
+  const totalInitiateCheckout = metrics.initiateCheckout;
   
   const validOrders = orders?.filter(o => o.status !== 'cancelled') || [];
   
@@ -136,6 +143,16 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إجمالي الزيارات 👁️</h3>
           <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{totalVisits}</p>
+        </div>
+
+        <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إضافة للسلة 🛒</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#e67e22' }}>{totalAddToCart}</p>
+        </div>
+
+        <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>بدء الشراء 💳</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#9b59b6' }}>{totalInitiateCheckout}</p>
         </div>
 
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>

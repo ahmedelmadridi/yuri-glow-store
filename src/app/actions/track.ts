@@ -62,3 +62,24 @@ export async function trackOrderByPhone(phone: string) {
 
   return { orders: data };
 }
+
+export async function trackMetric(metricId: number) {
+  try {
+    // We increment the total_visits counter for the given metric ID
+    // 1: Store Visits, 2: Add To Cart, 3: Initiate Checkout
+    const { data: current, error: fetchError } = await supabaseAdmin
+      .from('store_metrics')
+      .select('total_visits')
+      .eq('id', metricId)
+      .single();
+      
+    if (!fetchError && current) {
+      await supabaseAdmin
+        .from('store_metrics')
+        .update({ total_visits: current.total_visits + 1 })
+        .eq('id', metricId);
+    }
+  } catch (err) {
+    console.error('Failed to track metric', err);
+  }
+}

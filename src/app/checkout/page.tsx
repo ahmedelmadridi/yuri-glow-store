@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { governorates } from '@/data/governorates';
 import { supabase } from '@/lib/supabase';
@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
 import { sendTelegramOrder } from '@/app/actions/telegram';
 import { validateCoupon } from '@/app/actions/coupons';
+import { trackMetric } from '@/app/actions/track';
 import { sendGAEvent } from '@next/third-parties/google';
 import styles from './page.module.css';
 
@@ -69,14 +70,20 @@ export default function CheckoutPage() {
     walletReference: ''
   });
   const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null);
+  const hasTrackedRef = useRef(false);
 
   // Redirect if cart is empty (but not if we just submitted the order)
   useEffect(() => {
     if (cart.length === 0 && !isSubmitted) {
       router.push('/cart');
     } else if (cart.length > 0 && !isSubmitted) {
-      // Fire GA event for begin checkout
-      sendGAEvent('event', 'begin_checkout', {
+      if (!hasTrackedRef.current) {
+        hasTrackedRef.current = true;
+        // Track Initiate Checkout in database
+        trackMetric(3).catch(console.error);
+
+        // Fire GA event for begin checkout
+        sendGAEvent('event', 'begin_checkout', {
         currency: 'EGP',
         value: totalPrice,
         items: cart.map(item => ({
