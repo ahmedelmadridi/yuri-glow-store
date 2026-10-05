@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/utils/format';
 import ProductGallery from '@/components/ProductGallery';
 import { getIdFromSlug, createProductSlug } from '@/utils/slug';
+import ProductViewTracker from '@/components/ProductViewTracker';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -82,6 +83,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ slu
 
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)' }}>
+      <ProductViewTracker productId={product.id} productName={product.name} price={product.price} />
       <div className={styles.breadcrumb}>
         <Link href="/">الرئيسية</Link> &gt; <Link href="/products">المنتجات</Link> &gt; <span>{product.name}</span>
       </div>
