@@ -1,9 +1,12 @@
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
+
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { revalidatePath } from 'next/cache';
 
 export async function addCoupon(code: string, discountPercentage: number) {
+  await requireAdmin();
   if (!code || discountPercentage < 1 || discountPercentage > 100) {
     return { error: 'بيانات الكوبون غير صحيحة' };
   }
@@ -22,6 +25,7 @@ export async function addCoupon(code: string, discountPercentage: number) {
 }
 
 export async function toggleCouponStatus(id: number, currentStatus: boolean) {
+  await requireAdmin();
   const { error } = await supabaseAdmin
     .from('coupons')
     .update({ is_active: !currentStatus })
@@ -36,6 +40,7 @@ export async function toggleCouponStatus(id: number, currentStatus: boolean) {
 }
 
 export async function deleteCoupon(id: number) {
+  await requireAdmin();
   const { error } = await supabaseAdmin
     .from('coupons')
     .delete()

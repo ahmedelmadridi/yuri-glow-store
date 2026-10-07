@@ -1,7 +1,7 @@
 'use server'
 
-const TELEGRAM_BOT_TOKEN = '8758380465:AAGqNLIADg8xXtf_WRs5px6qwVPnYk0aeqc';
-const TELEGRAM_CHAT_ID = '1023274394';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 export async function sendTelegramNotification(message: string) {
   try {

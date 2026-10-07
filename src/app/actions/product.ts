@@ -1,9 +1,12 @@
-'use server'
+'use server';
+
+import { requireAdmin } from '@/lib/auth';
 
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { revalidatePath } from 'next/cache';
 
 export async function upsertProduct(productData: any) {
+  await requireAdmin();
   try {
     const isUpdate = !!productData.id;
     let result;
@@ -42,6 +45,7 @@ export async function upsertProduct(productData: any) {
 }
 
 export async function deleteProduct(productId: number) {
+  await requireAdmin();
   try {
     const { error } = await supabaseAdmin
       .from('products')
@@ -60,3 +64,4 @@ export async function deleteProduct(productId: number) {
     return { success: false, error: error.message };
   }
 }
+

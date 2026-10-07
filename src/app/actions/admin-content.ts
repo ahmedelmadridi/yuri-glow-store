@@ -1,4 +1,6 @@
-'use server'
+'use server';
+
+import { requireAdmin } from '@/lib/auth';
 
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { revalidatePath } from 'next/cache';
@@ -21,6 +23,7 @@ export async function getPublicAnnouncements() {
 }
 
 export async function addAnnouncement(text: string) {
+  await requireAdmin();
   try {
     const { data, error } = await supabaseAdmin
       .from('announcements')
@@ -37,6 +40,7 @@ export async function addAnnouncement(text: string) {
 }
 
 export async function toggleAnnouncement(id: string, is_active: boolean) {
+  await requireAdmin();
   try {
     const { error } = await supabaseAdmin
       .from('announcements')
@@ -52,6 +56,7 @@ export async function toggleAnnouncement(id: string, is_active: boolean) {
 }
 
 export async function deleteAnnouncement(id: string) {
+  await requireAdmin();
   try {
     const { error } = await supabaseAdmin
       .from('announcements')
@@ -69,6 +74,7 @@ export async function deleteAnnouncement(id: string) {
 // --- Banners ---
 
 export async function addBanner(image_url: string, sort_order: number) {
+  await requireAdmin();
   try {
     const { data, error } = await supabaseAdmin
       .from('banners')
@@ -85,6 +91,7 @@ export async function addBanner(image_url: string, sort_order: number) {
 }
 
 export async function deleteBanner(id: string, fileName: string) {
+  await requireAdmin();
   try {
     // 1. Delete from DB
     const { error: dbError } = await supabaseAdmin
@@ -111,6 +118,7 @@ export async function deleteBanner(id: string, fileName: string) {
 // --- Screenshot Reviews ---
 
 export async function addScreenshotReview(image_url: string, sort_order: number) {
+  await requireAdmin();
   try {
     const { data, error } = await supabaseAdmin
       .from('screenshot_reviews')
@@ -127,6 +135,7 @@ export async function addScreenshotReview(image_url: string, sort_order: number)
 }
 
 export async function deleteScreenshotReview(id: string, fileName: string) {
+  await requireAdmin();
   try {
     const { error: dbError } = await supabaseAdmin
       .from('screenshot_reviews')
@@ -166,6 +175,7 @@ export async function getStoreSettings() {
 }
 
 export async function updateStoreSetting(key: string, value: string) {
+  await requireAdmin();
   try {
     // Upsert logic: Check if exists, then update or insert
     const { data: existing } = await supabaseAdmin

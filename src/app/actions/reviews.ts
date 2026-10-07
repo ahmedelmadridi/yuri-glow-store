@@ -1,5 +1,7 @@
 'use server';
 
+import { requireAdmin } from '@/lib/auth';
+
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
@@ -32,6 +34,7 @@ export async function addReview(productId: number, customerName: string, rating:
 }
 
 export async function approveReview(reviewId: number, productId: number) {
+  await requireAdmin();
   const { error } = await supabaseAdmin
     .from('product_reviews')
     .update({ is_approved: true })
@@ -50,6 +53,7 @@ export async function approveReview(reviewId: number, productId: number) {
 }
 
 export async function deleteReview(reviewId: number, productId: number) {
+  await requireAdmin();
   const { error } = await supabaseAdmin
     .from('product_reviews')
     .delete()
@@ -66,3 +70,4 @@ export async function deleteReview(reviewId: number, productId: number) {
   revalidatePath(`/admin/reviews`);
   return { success: true };
 }
+

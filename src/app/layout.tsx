@@ -10,6 +10,8 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import ViewCounter from '@/components/ViewCounter';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import FacebookPixel from '@/components/FacebookPixel';
+import TikTokPixel from '@/components/TikTokPixel';
+import GoogleAdsTracking from '@/components/GoogleAdsTracking';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -75,6 +77,8 @@ export default async function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} ${cairo.variable}`}>
         <Suspense fallback={null}>
           <FacebookPixel />
+          <TikTokPixel />
+          <GoogleAdsTracking />
         </Suspense>
         <ViewCounter />
         <WhatsAppButton />
