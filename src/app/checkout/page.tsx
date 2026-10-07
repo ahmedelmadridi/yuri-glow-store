@@ -148,6 +148,7 @@ export default function CheckoutPage() {
   const actualShippingCost = (totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost;
   
   const finalTotal = subtotal + actualShippingCost;
+  const depositAmount = totalPrice >= 3000 ? 100 : actualShippingCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,7 +176,7 @@ export default function CheckoutPage() {
         address: formData.address,
         notes: formData.notes + 
                (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : '') +
-               (formData.paymentMethod === 'wallet' ? `\n[دفع إلكتروني: انستاباي/محفظة - الرقم المرجعي: ${formData.walletReference}]` : `\n[طريقة الدفع: عند الاستلام${actualShippingCost > 0 ? ` - تم دفع الشحن مقدماً من: ${formData.walletReference || 'لم يحدد'}` : ''}]`),
+               (formData.paymentMethod === 'wallet' ? `\n[دفع إلكتروني: انستاباي/محفظة - الرقم المرجعي: ${formData.walletReference}]` : `\n[طريقة الدفع: عند الاستلام${depositAmount > 0 ? ` - تم دفع ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'}` : ''}]`),
         subtotal_amount: subtotal,
         shipping_cost: actualShippingCost,
         total_amount: finalTotal,
@@ -211,7 +212,7 @@ export default function CheckoutPage() {
       if (formData.paymentMethod === 'wallet') {
         paymentText = `انستاباي / محفظة إلكترونية\n🔢 <b>الرقم المحول منه:</b> ${formData.walletReference}`;
       } else {
-        paymentText = `الدفع عند الاستلام\n${actualShippingCost > 0 ? `(تم دفع الشحن ${actualShippingCost} مقدماً من: ${formData.walletReference || 'لم يحدد'})` : ''}`;
+        paymentText = `الدفع عند الاستلام\n${depositAmount > 0 ? `(تم دفع مبلغ ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'})` : ''}`;
       }
 
       const message = `
@@ -435,22 +436,27 @@ ${orderItemsText}
               </label>
             </div>
             
-            {formData.paymentMethod === 'cod' && actualShippingCost > 0 && (
+            {formData.paymentMethod === 'cod' && depositAmount > 0 && (
               <div style={{ padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeeba', marginBottom: '16px' }}>
                 <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#856404' }}>
-                  <strong>تنبيه هام:</strong> لتأكيد طلبك بنظام "الدفع عند الاستلام"، برجاء تحويل قيمة الشحن (<strong>{formatPrice(actualShippingCost)}</strong>) مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - actualShippingCost)}</strong>) عند الاستلام.
+                  <strong>تنبيه هام:</strong> لتأكيد طلبك بنظام "الدفع عند الاستلام"، برجاء تحويل 
+                  {totalPrice >= 3000 && !appliedCoupon ? (
+                    <span> <strong>100 جنيه (عربون تأكيد)</strong> مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - 100)}</strong>) عند الاستلام (الشحن مجاني).</span>
+                  ) : (
+                    <span> قيمة الشحن (<strong>{formatPrice(actualShippingCost)}</strong>) مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - actualShippingCost)}</strong>) عند الاستلام.</span>
+                  )}
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
                   <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
                   <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
-                  <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد دفع الشحن *</label>
+                  <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد الدفع *</label>
                   <input 
                     type="text" 
                     id="walletReferenceCod" 
                     name="walletReference" 
-                    required={formData.paymentMethod === 'cod' && actualShippingCost > 0} 
+                    required={formData.paymentMethod === 'cod' && depositAmount > 0} 
                     value={formData.walletReference} 
                     onChange={handleInputChange} 
                     placeholder="مثال: 01012345678"
@@ -463,7 +469,7 @@ ${orderItemsText}
                     type="file" 
                     id="paymentReceiptCod" 
                     accept="image/*"
-                    required={formData.paymentMethod === 'cod' && actualShippingCost > 0}
+                    required={formData.paymentMethod === 'cod' && depositAmount > 0}
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setPaymentReceipt(e.target.files[0]);
