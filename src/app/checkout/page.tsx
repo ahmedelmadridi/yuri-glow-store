@@ -10,6 +10,7 @@ import { formatPrice } from '@/utils/format';
 import { sendTelegramOrder } from '@/app/actions/telegram';
 import { validateCoupon } from '@/app/actions/coupons';
 import { trackMetric } from '@/app/actions/track';
+import { checkRateLimit } from '@/app/actions/rateLimit';
 import { sendGAEvent } from '@next/third-parties/google';
 import styles from './page.module.css';
 
@@ -162,6 +163,14 @@ export default function CheckoutPage() {
     
     setIsSubmitting(true);
     setErrorMsg('');
+
+    // Check IP Rate Limit against spam bots
+    const rateLimitResult = await checkRateLimit();
+    if (!rateLimitResult.success) {
+      setErrorMsg(rateLimitResult.message || 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.');
+      setIsSubmitting(false);
+      return;
+    }
 
     const orderId = crypto.randomUUID();
 
