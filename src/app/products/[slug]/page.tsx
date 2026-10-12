@@ -1,4 +1,4 @@
-import { getProductById, getRelatedProducts } from '@/data/products';
+import { getProductById, getRelatedProducts, getProducts } from '@/data/products';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import AddToCartButton from '@/components/AddToCartButton';
@@ -12,6 +12,15 @@ import { formatPrice } from '@/utils/format';
 import ProductGallery from '@/components/ProductGallery';
 import { getIdFromSlug, createProductSlug } from '@/utils/slug';
 import ProductViewTracker from '@/components/ProductViewTracker';
+
+export const revalidate = 3600; // Cache and revalidate every hour (ISR)
+
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((product) => ({
+    slug: createProductSlug(product.name, product.id),
+  }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -81,8 +90,44 @@ export default async function ProductDetails({ params }: { params: Promise<{ slu
     calculatedDiscount = Math.round(((product.original_price - product.price) / product.original_price) * 100);
   }
 
+  const productSlug = createProductSlug(product.name, product.id);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: [product.image, ...(product.gallery_images || [])].filter(Boolean),
+    description: product.description,
+    sku: `YG-${product.id}`,
+    brand: {
+      '@type': 'Brand',
+      name: 'Yuri Glow',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://www.yurigloweg.com/products/${productSlug}`,
+      priceCurrency: 'EGP',
+      price: product.price,
+      priceValidUntil: '2027-12-31',
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: (product.stock_quantity !== undefined && product.stock_quantity !== null && product.stock_quantity <= 0)
+        ? 'https://schema.org/OutOfStock'
+        : 'https://schema.org/InStock',
+    },
+    ...(reviews && reviews.length > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: (reviews.reduce((acc: number, r: any) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1),
+        reviewCount: reviews.length,
+      }
+    } : {}),
+  };
+
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ProductViewTracker productId={product.id} productName={product.name} price={product.price} />
       <div className={styles.breadcrumb}>
         <Link href="/">الرئيسية</Link> &gt; <Link href="/products">المنتجات</Link> &gt; <span>{product.name}</span>

@@ -16,6 +16,7 @@ export interface Product {
   ingredients?: string | null;
   features?: string | null;
   usage_instructions?: string | null;
+  created_at?: string;
 }
 
 export async function getProducts(searchQuery?: string): Promise<Product[]> {

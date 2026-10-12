@@ -5,6 +5,10 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 export async function sendTelegramNotification(message: string) {
   try {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.warn('Telegram credentials not configured');
+      return;
+    }
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     const response = await fetch(url, {
       method: 'POST',
@@ -30,6 +34,11 @@ export async function sendTelegramOrder(formData: FormData) {
   try {
     const message = formData.get('message') as string;
     const photo = formData.get('photo') as File | null;
+
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.warn('Telegram credentials not configured');
+      return;
+    }
 
     if (photo && photo.size > 0) {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;

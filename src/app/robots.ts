@@ -5,7 +5,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/api/', '/checkout/'],
+      disallow: [
+        '/admin',
+        '/admin/*',
+        '/api',
+        '/api/*',
+        '/checkout',
+        '/checkout/*',
+        '/cart',
+        '/wishlist',
+        '/track',
+      ],
     },
     sitemap: 'https://www.yurigloweg.com/sitemap.xml',
   };

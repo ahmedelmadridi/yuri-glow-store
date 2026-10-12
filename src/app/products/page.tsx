@@ -10,6 +10,9 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'تسوق جميع منتجات العناية بالبشرة | Yuri Glow',
   description: 'تصفحي مجموعتنا الكاملة من منتجات العناية بالبشرة الكورية الأصيلة، ماسكات، سيروم، كريمات، وكل ما تحتاجينه لبشرة نضرة ومشرقة من يوري جلو.',
+  alternates: {
+    canonical: '/products',
+  },
 };
 
 export default async function ProductsPage({
