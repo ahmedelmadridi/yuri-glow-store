@@ -160,6 +160,36 @@ export default function CheckoutPage() {
       setErrorMsg('رقم الهاتف يجب أن يتكون من 11 رقماً على الأقل.');
       return;
     }
+
+    // Validate electronic wallet payment
+    if (formData.paymentMethod === 'wallet') {
+      if (!formData.walletReference.trim()) {
+        setErrorMsg('يرجى كتابة رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع.');
+        return;
+      }
+      if (!paymentReceipt) {
+        setErrorMsg('يرجى إرفاق سكرين شوت التحويل لتأكيد الطلب.');
+        return;
+      }
+    }
+
+    // Validate COD advance deposit
+    if (formData.paymentMethod === 'cod' && depositAmount > 0) {
+      if (!formData.walletReference.trim()) {
+        setErrorMsg('يرجى كتابة رقم الهاتف المحول منه لتأكيد دفع العربون.');
+        return;
+      }
+      if (!paymentReceipt) {
+        setErrorMsg('يرجى إرفاق سكرين شوت تحويل العربون لتأكيد الطلب.');
+        return;
+      }
+    }
+
+    // Validate receipt file size (max 10MB)
+    if (paymentReceipt && paymentReceipt.size > 10 * 1024 * 1024) {
+      setErrorMsg('حجم الصورة المرفقة كبير جداً (أكبر من 10 ميجابايت). يرجى اختيار صورة أصغر أو ضغطها.');
+      return;
+    }
     
     setIsSubmitting(true);
     setErrorMsg('');
@@ -486,6 +516,11 @@ ${orderItemsText}
                     }}
                     style={{ border: '1px solid #ffeeba', padding: '8px', backgroundColor: 'white', borderRadius: '4px', width: '100%' }}
                   />
+                  {paymentReceipt && formData.paymentMethod === 'cod' && (
+                    <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#856404', fontWeight: 'bold' }}>
+                      ✅ تم إرفاق الصورة: {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -526,6 +561,11 @@ ${orderItemsText}
                     }}
                     style={{ border: '1px solid #27ae60', padding: '8px', backgroundColor: 'white', borderRadius: '4px', width: '100%' }}
                   />
+                  {paymentReceipt && formData.paymentMethod === 'wallet' && (
+                    <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#1e8449', fontWeight: 'bold' }}>
+                      ✅ تم إرفاق الصورة: {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
+                    </div>
+                  )}
                 </div>
               </div>
             )}
