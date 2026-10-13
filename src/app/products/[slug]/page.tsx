@@ -108,10 +108,47 @@ export default async function ProductDetails({ params }: { params: Promise<{ slu
       priceCurrency: 'EGP',
       price: product.price,
       priceValidUntil: '2027-12-31',
+      validFrom: product.created_at ? new Date(product.created_at).toISOString().split('T')[0] : '2024-01-01',
       itemCondition: 'https://schema.org/NewCondition',
       availability: (product.stock_quantity !== undefined && product.stock_quantity !== null && product.stock_quantity <= 0)
         ? 'https://schema.org/OutOfStock'
         : 'https://schema.org/InStock',
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: 80,
+          currency: 'EGP',
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'EG',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 2,
+            maxValue: 4,
+            unitCode: 'DAY',
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'EG',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 14,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/CustomerReturnFees',
+        url: 'https://www.yurigloweg.com/return-policy',
+      },
     },
     ...(reviews && reviews.length > 0 ? {
       aggregateRating: {
