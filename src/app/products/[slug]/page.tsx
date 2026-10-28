@@ -146,7 +146,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ slu
         returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
         merchantReturnDays: 14,
         returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/CustomerReturnFees',
+        returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
         url: 'https://www.yurigloweg.com/return-policy',
       },
     },

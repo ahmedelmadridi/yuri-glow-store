@@ -24,9 +24,6 @@ const cairo = Cairo({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yurigloweg.com'),
-  alternates: {
-    canonical: './',
-  },
   title: {
     template: '%s | Yuri Glow',
     default: 'Yuri Glow - مستحضرات العناية بالبشرة الكورية الأصلية في مصر',

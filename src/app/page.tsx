@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,6 +11,12 @@ import SearchBar from '@/components/SearchBar';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import HeroSlider from '@/components/HeroSlider';
 import TestimonialSlider from '@/components/TestimonialSlider';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
 
 export const revalidate = 3600; // Cache the home page for 1 hour
 

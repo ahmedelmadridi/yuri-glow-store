@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'سياسة الاسترجاع والاستبدال | Yuri Glow',
   description: 'تعرف على سياسة الاسترجاع والاستبدال الخاصة بمتجر Yuri Glow لضمان حقوقك وتجربة تسوق آمنة.',
+  alternates: {
+    canonical: '/return-policy',
+  },
 };
 
 export default function ReturnPolicyPage() {

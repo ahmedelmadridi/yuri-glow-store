@@ -1,5 +1,14 @@
+import type { Metadata } from 'next';
 import styles from './page.module.css';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'من نحن',
+  description: 'تعرف على قصة يوري جلو، وجهتك الأولى لمنتجات العناية بالبشرة الكورية الأصلية في مصر.',
+  alternates: {
+    canonical: '/about',
+  },
+};
 
 export default function AboutPage() {
   return (
