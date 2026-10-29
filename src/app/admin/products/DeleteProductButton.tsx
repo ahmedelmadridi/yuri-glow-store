@@ -22,7 +22,7 @@ export default function DeleteProductButton({ productId, productName }: { produc
       } else {
         alert('حدث خطأ أثناء الحذف: ' + result.error);
       }
-    } catch (error) {
+    } catch {
       alert('حدث خطأ غير متوقع');
     } finally {
       setIsDeleting(false);
