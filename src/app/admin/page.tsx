@@ -74,19 +74,14 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     .select('id, name, stock_quantity, image')
     .order('stock_quantity', { ascending: true });
 
-  // Fetch store metrics (visits, add to cart, initiate checkout)
-  const { data: metricsData } = await supabaseAdmin
+  // Fetch store metrics (both all-time totals and daily records)
+  const { data: allMetricsData, error: metricsError } = await supabaseAdmin
     .from('store_metrics')
-    .select('id, total_visits')
-    .in('id', [1, 2, 3]);
+    .select('id, total_visits');
 
-  const metrics = {
-    visits: metricsData?.find(m => m.id === 1)?.total_visits || 0,
-    addToCart: metricsData?.find(m => m.id === 2)?.total_visits || 0,
-    initiateCheckout: metricsData?.find(m => m.id === 3)?.total_visits || 0,
-  };
+  const metricsRows = allMetricsData || [];
 
-  if (ordersError || productsError) {
+  if (ordersError || productsError || metricsError) {
     return <div>خطأ في جلب البيانات</div>;
   }
 
@@ -166,6 +161,54 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const profitChange = calculateChange(currentStats.netProfit, previousStats.netProfit);
   const ordersChange = calculateChange(currentStats.totalOrders, previousStats.totalOrders);
   const aovChange = calculateChange(currentStats.averageOrderValue, previousStats.averageOrderValue);
+
+  // Helper to convert date to integer YYYYMMDD
+  const toDateInt = (d: Date): number => {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return parseInt(`${y}${m}${day}`, 10);
+  };
+
+  // Calculate visits, addToCart, initiateCheckout for current and previous periods
+  const currentMetrics = { visits: 0, addToCart: 0, initiateCheckout: 0 };
+  const previousMetrics = { visits: 0, addToCart: 0, initiateCheckout: 0 };
+
+  if (!startDate) {
+    // "all" period: use lifetime cumulative rows (id: 1, 2, 3)
+    currentMetrics.visits = metricsRows.find(m => m.id === 1)?.total_visits || 0;
+    currentMetrics.addToCart = metricsRows.find(m => m.id === 2)?.total_visits || 0;
+    currentMetrics.initiateCheckout = metricsRows.find(m => m.id === 3)?.total_visits || 0;
+  } else {
+    const todayInt = toDateInt(now);
+    const startDayInt = toDateInt(new Date(startDate));
+    const prevStartDayInt = prevStartDate ? toDateInt(new Date(prevStartDate)) : null;
+
+    metricsRows.forEach(r => {
+      if (r.id > 10) {
+        const type = r.id % 10;
+        const dInt = Math.floor(r.id / 10);
+
+        // Current period: from startDayInt to todayInt
+        if (dInt >= startDayInt && dInt <= todayInt) {
+          if (type === 1) currentMetrics.visits += r.total_visits;
+          else if (type === 2) currentMetrics.addToCart += r.total_visits;
+          else if (type === 3) currentMetrics.initiateCheckout += r.total_visits;
+        }
+
+        // Previous period: from prevStartDayInt to startDayInt - 1
+        if (prevStartDayInt !== null && dInt >= prevStartDayInt && dInt < startDayInt) {
+          if (type === 1) previousMetrics.visits += r.total_visits;
+          else if (type === 2) previousMetrics.addToCart += r.total_visits;
+          else if (type === 3) previousMetrics.initiateCheckout += r.total_visits;
+        }
+      }
+    });
+  }
+
+  const visitsChange = calculateChange(currentMetrics.visits, previousMetrics.visits);
+  const addToCartChange = calculateChange(currentMetrics.addToCart, previousMetrics.addToCart);
+  const checkoutChange = calculateChange(currentMetrics.initiateCheckout, previousMetrics.initiateCheckout);
 
   // Best selling products tracking (for the selected period)
   const productSalesCount: Record<string, { name: string, quantity: number, revenue: number }> = {};
@@ -252,38 +295,23 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         
         {/* Visits Metric */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-xs)' }}>
-            <h3 style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.95rem' }}>إجمالي الزيارات 👁️</h3>
-            <span style={{ fontSize: '0.7rem', color: '#666', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '6px' }}>تراكمي</span>
-          </div>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)', margin: 0 }}>{metrics.visits}</p>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-light)', display: 'block', marginTop: '8px' }}>
-            إجمالي الزيارات منذ التدشين
-          </span>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>إجمالي الزيارات 👁️</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)', margin: 0 }}>{currentMetrics.visits}</p>
+          {renderTrendBadge(visitsChange)}
         </div>
 
         {/* Add To Cart Metric */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-xs)' }}>
-            <h3 style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.95rem' }}>إضافة للسلة 🛒</h3>
-            <span style={{ fontSize: '0.7rem', color: '#666', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '6px' }}>تراكمي</span>
-          </div>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#e67e22', margin: 0 }}>{metrics.addToCart}</p>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-light)', display: 'block', marginTop: '8px' }}>
-            مرات الإضافة للسلة التراكمية
-          </span>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>إضافة للسلة 🛒</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#e67e22', margin: 0 }}>{currentMetrics.addToCart}</p>
+          {renderTrendBadge(addToCartChange)}
         </div>
 
         {/* Initiate Checkout Metric */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-xs)' }}>
-            <h3 style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.95rem' }}>بدء الشراء 💳</h3>
-            <span style={{ fontSize: '0.7rem', color: '#666', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '6px' }}>تراكمي</span>
-          </div>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{metrics.initiateCheckout}</p>
-          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-light)', display: 'block', marginTop: '8px' }}>
-            محاولات الشراء في صفحة الدفع
-          </span>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>بدء الشراء 💳</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{currentMetrics.initiateCheckout}</p>
+          {renderTrendBadge(checkoutChange)}
         </div>
 
         {/* Revenue */}

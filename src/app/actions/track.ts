@@ -63,23 +63,66 @@ export async function trackOrderByPhone(phone: string) {
   return { orders: data };
 }
 
+function getTodayDateInt(): number {
+  const now = new Date();
+  // Egypt time UTC+2
+  const egyptTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  const y = egyptTime.getUTCFullYear();
+  const m = String(egyptTime.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(egyptTime.getUTCDate()).padStart(2, '0');
+  return parseInt(`${y}${m}${d}`, 10);
+}
+
+export async function trackStoreVisit() {
+  return trackMetric(1);
+}
+
 export async function trackMetric(metricId: number) {
   try {
-    // We increment the total_visits counter for the given metric ID
     // 1: Store Visits, 2: Add To Cart, 3: Initiate Checkout
-    const { data: current, error: fetchError } = await supabaseAdmin
+    // 1. Update all-time cumulative counter
+    const { data: current } = await supabaseAdmin
       .from('store_metrics')
       .select('total_visits')
       .eq('id', metricId)
       .single();
       
-    if (!fetchError && current) {
+    if (current) {
       await supabaseAdmin
         .from('store_metrics')
         .update({ total_visits: current.total_visits + 1 })
         .eq('id', metricId);
+    } else {
+      await supabaseAdmin
+        .from('store_metrics')
+        .insert({ id: metricId, total_visits: 1 });
     }
+
+    // 2. Update daily counter (YYYYMMDD * 10 + metricId)
+    const todayInt = getTodayDateInt();
+    const dailyId = todayInt * 10 + metricId;
+
+    const { data: dailyCurrent } = await supabaseAdmin
+      .from('store_metrics')
+      .select('total_visits')
+      .eq('id', dailyId)
+      .single();
+
+    if (dailyCurrent) {
+      await supabaseAdmin
+        .from('store_metrics')
+        .update({ total_visits: dailyCurrent.total_visits + 1 })
+        .eq('id', dailyId);
+    } else {
+      await supabaseAdmin
+        .from('store_metrics')
+        .insert({ id: dailyId, total_visits: 1 });
+    }
+
+    return { success: true };
   } catch (err) {
     console.error('Failed to track metric', err);
+    return { error: 'Failed to track metric' };
   }
 }
+
