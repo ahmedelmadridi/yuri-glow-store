@@ -28,6 +28,7 @@ export default function DateFilter() {
         }}
       >
         <option value="all">كل الأوقات</option>
+        <option value="today">اليوم</option>
         <option value="7d">آخر 7 أيام</option>
         <option value="30d">آخر 30 يوم</option>
         <option value="1y">آخر سنة</option>

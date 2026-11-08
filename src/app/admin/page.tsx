@@ -11,15 +11,37 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   const resolvedParams = await searchParams;
   const period = resolvedParams.period || 'all';
 
-  let startDate = null;
-  if (period === '7d') {
-    startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date();
+  let startDate: string | null = null;
+  let prevStartDate: string | null = null;
+  let comparisonLabel = '';
+
+  if (period === 'today') {
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    startDate = startOfToday.toISOString();
+
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    prevStartDate = startOfYesterday.toISOString();
+    comparisonLabel = 'مقارنة بالأمس';
+  } else if (period === '7d') {
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    prevStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    comparisonLabel = 'مقارنة بـ 7 أيام السابقة';
   } else if (period === '30d') {
-    startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    prevStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString();
+    comparisonLabel = 'مقارنة بـ 30 يوماً السابقة';
   } else if (period === '1y') {
-    startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    prevStartDate = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000).toISOString();
+    comparisonLabel = 'مقارنة بالسنة السابقة';
   }
-  // Fetch orders with their items and related products
+
+  // Fetch orders starting from prevStartDate (for comparison) or startDate or all
+  const fetchFromDate = prevStartDate || startDate;
+
   let ordersQuery = supabaseAdmin
     .from('orders')
     .select(`
@@ -40,11 +62,11 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       )
     `);
 
-  if (startDate) {
-    ordersQuery = ordersQuery.gte('created_at', startDate);
+  if (fetchFromDate) {
+    ordersQuery = ordersQuery.gte('created_at', fetchFromDate);
   }
 
-  const { data: orders, error: ordersError } = await ordersQuery;
+  const { data: allOrders, error: ordersError } = await ordersQuery;
 
   // Fetch products for inventory alerts
   const { data: products, error: productsError } = await supabaseAdmin
@@ -68,46 +90,89 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     return <div>خطأ في جلب البيانات</div>;
   }
 
-  // Basic Stats
-  const totalOrders = orders?.length || 0;
-  const pendingOrders = orders?.filter(o => o.status === 'pending').length || 0;
-  const totalVisits = metrics.visits;
-  const totalAddToCart = metrics.addToCart;
-  const totalInitiateCheckout = metrics.initiateCheckout;
-  
-  const validOrders = orders?.filter(o => o.status !== 'cancelled') || [];
-  
-  // Revenue is what the customer paid for PRODUCTS (excluding any shipping they paid).
-  // Total Amount - Shipping Cost paid by customer = Product Sales Revenue
-  const revenue = validOrders.reduce((sum, order) => sum + (order.total_amount - (order.shipping_cost || 0)), 0);
-  const averageOrderValue = validOrders.length > 0 ? revenue / validOrders.length : 0;
+  // Partition orders into current period and previous period
+  const rawOrders = allOrders || [];
+  const currentOrders = startDate
+    ? rawOrders.filter(o => new Date(o.created_at) >= new Date(startDate!))
+    : rawOrders;
 
-  // Calculate Net Profit
-  // Net Profit = Product Revenue - Total Cost of Goods - Shipping paid by merchant
-  // If shipping_cost (paid by customer) is 0, the merchant pays the FULL courier fee.
-  // If customer paid shipping, the merchant just passes it to the courier (no loss, no gain).
-  // So the loss on shipping is: (Courier Fee) - (What customer paid)
-  let totalCostOfGoods = 0;
-  let totalShippingLoss = 0;
+  const previousOrders = (startDate && prevStartDate)
+    ? rawOrders.filter(o => {
+        const d = new Date(o.created_at);
+        return d >= new Date(prevStartDate!) && d < new Date(startDate!);
+      })
+    : [];
 
+  // Helper to calculate statistics for an order set
+  const calculatePeriodStats = (orderList: typeof rawOrders) => {
+    const validOrders = orderList.filter(o => o.status !== 'cancelled');
+    const totalOrders = orderList.length;
+    const pendingOrders = orderList.filter(o => o.status === 'pending').length;
+
+    // Product Revenue (excluding shipping paid by customer)
+    const revenue = validOrders.reduce((sum, order) => sum + (order.total_amount - (order.shipping_cost || 0)), 0);
+    const averageOrderValue = validOrders.length > 0 ? revenue / validOrders.length : 0;
+
+    let totalCostOfGoods = 0;
+    let totalShippingLoss = 0;
+
+    validOrders.forEach(order => {
+      const courierFee = governorates.find(g => g.name === order.governorate)?.shippingCost || 0;
+      const customerPaidShipping = order.shipping_cost || 0;
+      const shippingLoss = Math.max(0, courierFee - customerPaidShipping);
+      totalShippingLoss += shippingLoss;
+
+      order.order_items?.forEach((item: any) => {
+        const quantity = item.quantity || 0;
+        const cost = item.products?.cost_price || 0;
+        totalCostOfGoods += (cost * quantity);
+      });
+    });
+
+    const netProfit = revenue - totalCostOfGoods - totalShippingLoss;
+
+    return {
+      totalOrders,
+      pendingOrders,
+      validOrders,
+      revenue,
+      averageOrderValue,
+      netProfit,
+    };
+  };
+
+  const currentStats = calculatePeriodStats(currentOrders);
+  const previousStats = calculatePeriodStats(previousOrders);
+
+  // Helper to calculate percentage difference
+  const calculateChange = (current: number, previous: number) => {
+    if (!startDate || !prevStartDate) {
+      return null;
+    }
+    if (previous === 0) {
+      if (current === 0) return { percent: 0, direction: 'neutral' as const };
+      return { percent: 100, direction: 'up' as const };
+    }
+    const diff = current - previous;
+    const percent = Math.round((diff / Math.abs(previous)) * 100);
+    if (percent === 0) return { percent: 0, direction: 'neutral' as const };
+    return {
+      percent: Math.abs(percent),
+      direction: diff > 0 ? ('up' as const) : ('down' as const),
+    };
+  };
+
+  const revenueChange = calculateChange(currentStats.revenue, previousStats.revenue);
+  const profitChange = calculateChange(currentStats.netProfit, previousStats.netProfit);
+  const ordersChange = calculateChange(currentStats.totalOrders, previousStats.totalOrders);
+  const aovChange = calculateChange(currentStats.averageOrderValue, previousStats.averageOrderValue);
+
+  // Best selling products tracking (for the selected period)
   const productSalesCount: Record<string, { name: string, quantity: number, revenue: number }> = {};
-
-  validOrders.forEach(order => {
-    const courierFee = governorates.find(g => g.name === order.governorate)?.shippingCost || 0;
-    const customerPaidShipping = order.shipping_cost || 0;
-    
-    // The merchant loses money on shipping if they charged the customer less than the courier fee (e.g. Free shipping)
-    const shippingLoss = Math.max(0, courierFee - customerPaidShipping);
-    totalShippingLoss += shippingLoss;
-    
-    order.order_items.forEach((item: any) => {
-      const quantity = item.quantity;
-      const price = item.price_at_time_of_order;
-      const cost = item.products?.cost_price || 0;
-      
-      totalCostOfGoods += (cost * quantity);
-
-      // Best selling products tracking
+  currentStats.validOrders.forEach(order => {
+    order.order_items?.forEach((item: any) => {
+      const quantity = item.quantity || 0;
+      const price = item.price_at_time_of_order || 0;
       const pId = item.product_id;
       if (!productSalesCount[pId]) {
         productSalesCount[pId] = {
@@ -121,9 +186,6 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     });
   });
 
-  const netProfit = revenue - totalCostOfGoods - totalShippingLoss;
-
-  // Sort best selling products
   const bestSellers = Object.values(productSalesCount)
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 6);
@@ -131,48 +193,125 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   // Inventory Alerts (Products with stock <= 5)
   const lowStockProducts = products?.filter(p => (p.stock_quantity || 0) <= 5) || [];
 
+  // Helper to render trend badges
+  const renderTrendBadge = (change: { percent: number; direction: 'up' | 'down' | 'neutral' } | null) => {
+    if (!change) {
+      return (
+        <div style={{ marginTop: '8px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', backgroundColor: '#f5f5f5', padding: '2px 8px', borderRadius: '10px' }}>
+            إجمالي شامل
+          </span>
+        </div>
+      );
+    }
+
+    const isUp = change.direction === 'up';
+    const isDown = change.direction === 'down';
+    const bgColor = isUp ? '#e8f5e9' : isDown ? '#ffebee' : '#f5f5f5';
+    const textColor = isUp ? '#2e7d32' : isDown ? '#c62828' : '#616161';
+    const arrow = isUp ? '↑' : isDown ? '↓' : '•';
+    const sign = isUp ? '+' : isDown ? '-' : '';
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '2px',
+          fontSize: '0.8rem',
+          fontWeight: '700',
+          padding: '2px 8px',
+          borderRadius: '12px',
+          backgroundColor: bgColor,
+          color: textColor,
+        }}>
+          <span>{arrow}</span>
+          <span dir="ltr">{sign}{change.percent}%</span>
+        </span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
+          {comparisonLabel}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap', gap: '16px' }}>
-        <h1 style={{ margin: 0, color: 'var(--color-primary-dark)' }}>نظرة عامة وإحصائيات</h1>
+        <div>
+          <h1 style={{ margin: 0, color: 'var(--color-primary-dark)' }}>نظرة عامة وإحصائيات</h1>
+          <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--color-text-light)' }}>
+            مقارنة الأداء والنمو بالفترة السابقة
+          </p>
+        </div>
         <DateFilter />
       </div>
       
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-2xl)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-2xl)' }}>
+        
+        {/* Visits Metric */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إجمالي الزيارات 👁️</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{totalVisits}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-xs)' }}>
+            <h3 style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.95rem' }}>إجمالي الزيارات 👁️</h3>
+            <span style={{ fontSize: '0.7rem', color: '#666', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '6px' }}>تراكمي</span>
+          </div>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary)', margin: 0 }}>{metrics.visits}</p>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-light)', display: 'block', marginTop: '8px' }}>
+            إجمالي الزيارات منذ التدشين
+          </span>
         </div>
 
+        {/* Add To Cart Metric */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إضافة للسلة 🛒</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#e67e22' }}>{totalAddToCart}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-xs)' }}>
+            <h3 style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.95rem' }}>إضافة للسلة 🛒</h3>
+            <span style={{ fontSize: '0.7rem', color: '#666', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '6px' }}>تراكمي</span>
+          </div>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#e67e22', margin: 0 }}>{metrics.addToCart}</p>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-light)', display: 'block', marginTop: '8px' }}>
+            مرات الإضافة للسلة التراكمية
+          </span>
         </div>
 
+        {/* Initiate Checkout Metric */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>بدء الشراء 💳</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#9b59b6' }}>{totalInitiateCheckout}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-xs)' }}>
+            <h3 style={{ color: 'var(--color-text-light)', margin: 0, fontSize: '0.95rem' }}>بدء الشراء 💳</h3>
+            <span style={{ fontSize: '0.7rem', color: '#666', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '6px' }}>تراكمي</span>
+          </div>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{metrics.initiateCheckout}</p>
+          <span style={{ fontSize: '0.72rem', color: 'var(--color-text-light)', display: 'block', marginTop: '8px' }}>
+            محاولات الشراء في صفحة الدفع
+          </span>
         </div>
 
+        {/* Revenue */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>مبيعات المنتجات (بدون الشحن)</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{formatPrice(revenue)}</p>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>مبيعات المنتجات (بدون الشحن)</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-primary-dark)', margin: 0 }}>{formatPrice(currentStats.revenue)}</p>
+          {renderTrendBadge(revenueChange)}
         </div>
 
+        {/* Net Profit */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>صافي الربح</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#27ae60' }}>{formatPrice(netProfit)}</p>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>صافي الربح</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#27ae60', margin: 0 }}>{formatPrice(currentStats.netProfit)}</p>
+          {renderTrendBadge(profitChange)}
         </div>
 
+        {/* Total Orders */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>إجمالي الطلبات</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-text)' }}>{totalOrders}</p>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>إجمالي الطلبات</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>{currentStats.totalOrders}</p>
+          {renderTrendBadge(ordersChange)}
         </div>
 
+        {/* Average Order Value */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '1rem' }}>متوسط سعر الطلب</h3>
-          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-text)' }}>{formatPrice(averageOrderValue)}</p>
+          <h3 style={{ color: 'var(--color-text-light)', marginBottom: 'var(--spacing-xs)', fontSize: '0.95rem' }}>متوسط سعر الطلب</h3>
+          <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>{formatPrice(currentStats.averageOrderValue)}</p>
+          {renderTrendBadge(aovChange)}
         </div>
       </div>
 
@@ -180,7 +319,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         
         {/* Best Sellers */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>المنتجات الأكثر مبيعاً 🏆</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>المنتجات الأكثر مبيعاً 🏆</h2>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+              {period === 'all' ? 'كل الأوقات' : period === 'today' ? 'اليوم' : period === '7d' ? 'آخر 7 أيام' : period === '30d' ? 'آخر 30 يوم' : 'آخر سنة'}
+            </span>
+          </div>
           {bestSellers.length > 0 ? (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {bestSellers.map((item, idx) => (
