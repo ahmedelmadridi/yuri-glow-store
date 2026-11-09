@@ -186,7 +186,7 @@ export default function AdminLogin() {
                     required
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="yuri.glow.eg@gmail.com"
+                    placeholder="name@example.com"
                     dir="ltr"
                     autoFocus
                   />
@@ -201,7 +201,7 @@ export default function AdminLogin() {
                     maxLength={10}
                     value={forgotPin}
                     onChange={(e) => setForgotPin(e.target.value)}
-                    placeholder="أدخل الرمز السري الخاص بك"
+                    placeholder="••••"
                     dir="ltr"
                   />
                 </div>
