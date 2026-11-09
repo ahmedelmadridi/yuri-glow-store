@@ -21,9 +21,13 @@ export default function ProductViewTracker({ productId, productName, price }: Pr
     });
 
     trackTikTokEvent('ViewContent', {
-      content_id: String(productId),
-      content_name: productName,
-      content_type: 'product',
+      contents: [
+        {
+          content_id: String(productId),
+          content_name: productName,
+          content_type: 'product',
+        }
+      ],
       value: price,
       currency: 'EGP'
     });

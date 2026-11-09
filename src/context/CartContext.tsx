@@ -87,9 +87,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // Send TikTok Pixel event for add to cart
     import('@/utils/ttpixel').then(({ trackTikTokEvent }) => {
       trackTikTokEvent('AddToCart', {
-        content_id: String(product.id),
-        content_name: product.name,
-        content_type: 'product',
+        contents: [
+          {
+            content_id: String(product.id),
+            content_name: product.name,
+            content_type: 'product',
+          }
+        ],
         value: product.price * quantity,
         currency: 'EGP',
       });

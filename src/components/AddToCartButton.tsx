@@ -25,9 +25,13 @@ export default function AddToCartButton({ product }: { product: Product }) {
 
     // TikTok Pixel AddToCart Event
     trackTikTokEvent('AddToCart', {
-      content_id: String(product.id),
-      content_name: product.name,
-      content_type: 'product',
+      contents: [
+        {
+          content_id: String(product.id),
+          content_name: product.name,
+          content_type: 'product',
+        }
+      ],
       value: product.price * quantity,
       currency: 'EGP'
     });

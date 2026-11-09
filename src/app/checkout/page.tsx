@@ -382,19 +382,21 @@ ${orderItemsText}
       });
     });
 
-    // TikTok Pixel CompletePayment Event
+    // TikTok Pixel CompletePayment & PlaceAnOrder Event
     import('@/utils/ttpixel').then(({ trackTikTokEvent }) => {
-      trackTikTokEvent('CompletePayment', {
+      const tiktokPayload = {
         contents: cart.map(item => ({
           content_id: String(item.product.id),
           content_name: item.product.name,
           quantity: item.quantity,
           price: item.product.price,
+          content_type: 'product',
         })),
-        content_type: 'product',
         value: finalTotal,
         currency: 'EGP',
-      });
+      };
+      trackTikTokEvent('CompletePayment', tiktokPayload);
+      trackTikTokEvent('PlaceAnOrder', tiktokPayload);
     });
 
     // Google Analytics Purchase Event
