@@ -21,39 +21,39 @@ export default function AdminLayout({
           <h2>Yuri Glow Admin</h2>
         </div>
         <nav className={styles.nav}>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname === '/admin' ? 'rgba(255,255,255,0.1)' : 'transparent' }}>لوحة القيادة</Link>
+          <ul style={{ listStyle: 'none', padding: '0 8px', margin: 0 }}>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname === '/admin' ? 'rgba(255,255,255,0.1)' : 'transparent' }}>لوحة القيادة</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/orders" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/orders') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>الطلبات الواردة</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/orders" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/orders') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>الطلبات الواردة</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/products" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/products') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة المنتجات</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/products" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/products') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة المنتجات</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/design" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/design') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>تنسيق المتجر</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/design" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/design') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>تنسيق المتجر</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/announcements" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/announcements') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>شريط الأخبار الإعلاني</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/announcements" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/announcements') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>شريط الأخبار الإعلاني</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/reviews" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/reviews') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة التقييمات</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/reviews" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/reviews') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>إدارة التقييمات</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/testimonials" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/testimonials') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>آراء العملاء (صور)</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/testimonials" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/testimonials') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>آراء العملاء (صور)</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/coupons" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/coupons') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أكواد الخصم</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/coupons" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/coupons') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أكواد الخصم</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/shipping" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/shipping') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أسعار الشحن</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/shipping" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/shipping') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أسعار الشحن</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/payment" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/payment') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>طرق الدفع</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/payment" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/payment') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>طرق الدفع</Link>
             </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/admin/security" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/security') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>الأمان وكلمة المرور 🔐</Link>
+            <li style={{ marginBottom: '4px' }}>
+              <Link href="/admin/security" style={{ display: 'block', padding: '8px 12px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/security') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>الأمان وكلمة المرور 🔐</Link>
             </li>
           </ul>
           <button 

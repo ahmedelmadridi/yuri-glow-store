@@ -15,10 +15,22 @@
   top: 0;
   bottom: 0;
   z-index: 100;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
 }
 
 .sidebarHeader {
-  padding: var(--spacing-lg);
+  padding: 16px var(--spacing-md);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
 }
