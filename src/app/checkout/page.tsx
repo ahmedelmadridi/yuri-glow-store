@@ -12,6 +12,13 @@ import { validateCoupon } from '@/app/actions/coupons';
 import { trackMetric } from '@/app/actions/track';
 import { checkRateLimit } from '@/app/actions/rateLimit';
 import { sendGAEvent } from '@next/third-parties/google';
+import { getShippingSettings, getPaymentSettings } from '@/app/actions/settings';
+import {
+  defaultShippingSettings,
+  defaultPaymentSettings,
+  ShippingSettings,
+  PaymentSettings,
+} from '@/data/storeSettingsDefaults';
 import styles from './page.module.css';
 
 function CopyButton({ text, color }: { text: string, color: string }) {
@@ -51,6 +58,9 @@ export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart();
   const router = useRouter();
   
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(defaultShippingSettings);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(defaultPaymentSettings);
+
   const [selectedGov, setSelectedGov] = useState(governorates[0].name);
   const [shippingCost, setShippingCost] = useState(governorates[0].shippingCost);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,6 +82,51 @@ export default function CheckoutPage() {
   });
   const [paymentReceipt, setPaymentReceipt] = useState<File | null>(null);
   const hasTrackedRef = useRef(false);
+
+  // Load dynamic shipping and payment settings from DB
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchStoreSettings() {
+      try {
+        const [shipRes, payRes] = await Promise.all([
+          getShippingSettings(),
+          getPaymentSettings(),
+        ]);
+        if (!isMounted) return;
+
+        if (shipRes.success && shipRes.data) {
+          setShippingSettings(shipRes.data);
+          const activeGovs = shipRes.data.governorates.filter(g => g.is_active !== false);
+          if (activeGovs.length > 0) {
+            setSelectedGov(prev => {
+              const matched = activeGovs.find(g => g.name === prev) || activeGovs[0];
+              setShippingCost(matched.shippingCost);
+              return matched.name;
+            });
+          }
+        }
+
+        if (payRes.success && payRes.data) {
+          setPaymentSettings(payRes.data);
+          setFormData(prev => {
+            let method = prev.paymentMethod;
+            if (method === 'cod' && !payRes.data.cod_enabled && payRes.data.wallet_enabled) {
+              method = 'wallet';
+            } else if (method === 'wallet' && !payRes.data.wallet_enabled && payRes.data.cod_enabled) {
+              method = 'cod';
+            }
+            return { ...prev, paymentMethod: method };
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load store settings:', err);
+      }
+    }
+    fetchStoreSettings();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Redirect if cart is empty (but not if we just submitted the order)
   useEffect(() => {
@@ -108,10 +163,12 @@ export default function CheckoutPage() {
     } // close else if
   }, [cart, isSubmitted, router, totalPrice]);
 
+  const activeGovs = shippingSettings.governorates.filter(g => g.is_active !== false);
+
   const handleGovChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const govName = e.target.value;
     setSelectedGov(govName);
-    const gov = governorates.find(g => g.name === govName);
+    const gov = activeGovs.find(g => g.name === govName);
     if (gov) {
       setShippingCost(gov.shippingCost);
     }
@@ -145,11 +202,26 @@ export default function CheckoutPage() {
     subtotal = Math.round(subtotal - (subtotal * (appliedCoupon.discount / 100)));
   }
   
-  // Free shipping if subtotal >= 3000 AND no coupon is applied (using totalPrice as original code did)
-  const actualShippingCost = (totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost;
-  
+  // Free shipping check based on dynamic settings
+  const isFreeShippingQualified =
+    shippingSettings.free_shipping_enabled &&
+    totalPrice >= shippingSettings.free_shipping_threshold &&
+    (!appliedCoupon || shippingSettings.allow_free_shipping_with_coupon);
+
+  const actualShippingCost = isFreeShippingQualified ? 0 : shippingCost;
   const finalTotal = subtotal + actualShippingCost;
-  const depositAmount = totalPrice >= 3000 ? 100 : actualShippingCost;
+
+  // Deposit amount for COD based on dynamic settings
+  let depositAmount = 0;
+  if (paymentSettings.cod_deposit_required) {
+    if (isFreeShippingQualified) {
+      depositAmount = paymentSettings.cod_deposit_free_shipping_amount;
+    } else if (paymentSettings.cod_deposit_amount_type === 'fixed') {
+      depositAmount = paymentSettings.cod_deposit_fixed_amount;
+    } else {
+      depositAmount = actualShippingCost;
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +239,7 @@ export default function CheckoutPage() {
         setErrorMsg('يرجى كتابة رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع.');
         return;
       }
-      if (!paymentReceipt) {
+      if (paymentSettings.require_receipt_upload && !paymentReceipt) {
         setErrorMsg('يرجى إرفاق سكرين شوت التحويل لتأكيد الطلب.');
         return;
       }
@@ -179,7 +251,7 @@ export default function CheckoutPage() {
         setErrorMsg('يرجى كتابة رقم الهاتف المحول منه لتأكيد دفع العربون.');
         return;
       }
-      if (!paymentReceipt) {
+      if (paymentSettings.require_receipt_upload && !paymentReceipt) {
         setErrorMsg('يرجى إرفاق سكرين شوت تحويل العربون لتأكيد الطلب.');
         return;
       }
@@ -204,6 +276,10 @@ export default function CheckoutPage() {
 
     const orderId = crypto.randomUUID();
 
+    const paymentNoteDetail = formData.paymentMethod === 'wallet'
+      ? `\n[${paymentSettings.wallet_title} - الرقم المرجعي: ${formData.walletReference}]`
+      : `\n[${paymentSettings.cod_title}${depositAmount > 0 ? ` - تم دفع ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'}` : ' - بدون عربون'}]`;
+
     // 1. Insert order
     const { error: orderError } = await supabase
       .from('orders')
@@ -215,7 +291,7 @@ export default function CheckoutPage() {
         address: formData.address,
         notes: formData.notes + 
                (appliedCoupon ? `\n(تم استخدام كود خصم: ${appliedCoupon.code})` : '') +
-               (formData.paymentMethod === 'wallet' ? `\n[دفع إلكتروني: انستاباي/محفظة - الرقم المرجعي: ${formData.walletReference}]` : `\n[طريقة الدفع: عند الاستلام${depositAmount > 0 ? ` - تم دفع ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'}` : ''}]`),
+               paymentNoteDetail,
         subtotal_amount: subtotal,
         shipping_cost: actualShippingCost,
         total_amount: finalTotal,
@@ -249,9 +325,9 @@ export default function CheckoutPage() {
       const orderItemsText = cart.map(item => `- ${item.product.name} (x${item.quantity})`).join('\n');
       let paymentText = '';
       if (formData.paymentMethod === 'wallet') {
-        paymentText = `انستاباي / محفظة إلكترونية\n🔢 <b>الرقم المحول منه:</b> ${formData.walletReference}`;
+        paymentText = `${paymentSettings.wallet_title}\n🔢 <b>الرقم المحول منه:</b> ${formData.walletReference}`;
       } else {
-        paymentText = `الدفع عند الاستلام\n${depositAmount > 0 ? `(تم دفع مبلغ ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'})` : ''}`;
+        paymentText = `${paymentSettings.cod_title}\n${depositAmount > 0 ? `(تم دفع مبلغ ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'})` : '(بدون عربون)'}`;
       }
 
       const message = `
@@ -336,7 +412,7 @@ ${orderItemsText}
           <div className={styles.formGroup}>
             <label htmlFor="governorate">المحافظة *</label>
             <select id="governorate" name="governorate" value={selectedGov} onChange={handleGovChange} required>
-              {governorates.map(gov => (
+              {activeGovs.map(gov => (
                 <option key={gov.name} value={gov.name}>
                   {gov.name} (شحن: {gov.shippingCost} ج.م)
                 </option>
@@ -434,7 +510,7 @@ ${orderItemsText}
           <div className={styles.summaryRow}>
             <span>الشحن ({selectedGov})</span>
             <span>
-              {totalPrice >= 3000 && !appliedCoupon ? (
+              {isFreeShippingQualified ? (
                 <span style={{ color: '#27ae60', fontWeight: 'bold' }}>مجانًا! 🎁</span>
               ) : (
                 formatPrice(shippingCost)
@@ -446,93 +522,118 @@ ${orderItemsText}
           
           <div className={`${styles.summaryRow} ${styles.totalRow}`}>
             <span>الإجمالي المطلوب</span>
-            <span>{formatPrice((appliedCoupon ? Math.round(totalPrice - (totalPrice * (appliedCoupon.discount / 100))) : totalPrice) + ((totalPrice >= 3000 && !appliedCoupon) ? 0 : shippingCost))}</span>
+            <span>{formatPrice(finalTotal)}</span>
           </div>
           
           <div style={{ marginBottom: 'var(--spacing-md)', backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
             <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع</h3>
             
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="cod" 
-                  checked={formData.paymentMethod === 'cod'} 
-                  onChange={handleInputChange} 
-                />
-                الدفع عند الاستلام 💵
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="wallet" 
-                  checked={formData.paymentMethod === 'wallet'} 
-                  onChange={handleInputChange} 
-                />
-                دفع إلكتروني (انستاباي/محفظة) 📱
-              </label>
+              {paymentSettings.cod_enabled && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="paymentMethod" 
+                    value="cod" 
+                    checked={formData.paymentMethod === 'cod'} 
+                    onChange={handleInputChange} 
+                  />
+                  {paymentSettings.cod_title}
+                </label>
+              )}
+              {paymentSettings.wallet_enabled && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input 
+                    type="radio" 
+                    name="paymentMethod" 
+                    value="wallet" 
+                    checked={formData.paymentMethod === 'wallet'} 
+                    onChange={handleInputChange} 
+                  />
+                  {paymentSettings.wallet_title}
+                </label>
+              )}
+              {!paymentSettings.cod_enabled && !paymentSettings.wallet_enabled && (
+                <div style={{ color: '#e74c3c', fontSize: '0.9rem' }}>
+                  لا توجد طرق دفع مفعلة حالياً. يرجى التواصل مع إدارة المتجر.
+                </div>
+              )}
             </div>
             
-            {formData.paymentMethod === 'cod' && depositAmount > 0 && (
+            {formData.paymentMethod === 'cod' && paymentSettings.cod_enabled && (
               <div style={{ padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeeba', marginBottom: '16px' }}>
                 <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#856404' }}>
-                  <strong>تنبيه هام:</strong> لتأكيد طلبك بنظام "الدفع عند الاستلام"، برجاء تحويل 
-                  {totalPrice >= 3000 && !appliedCoupon ? (
-                    <span> <strong>100 جنيه (عربون تأكيد)</strong> مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - 100)}</strong>) عند الاستلام (الشحن مجاني).</span>
+                  <strong>تنبيه:</strong> {paymentSettings.cod_notice}{' '}
+                  {depositAmount > 0 ? (
+                    <span>
+                      برجاء تحويل (<strong>{formatPrice(depositAmount)}</strong>) كعربون لتأكيد طلبك، وسيتم دفع باقي المبلغ (<strong>{formatPrice(Math.max(0, finalTotal - depositAmount))}</strong>) عند الاستلام.
+                    </span>
                   ) : (
-                    <span> قيمة الشحن (<strong>{formatPrice(actualShippingCost)}</strong>) مقدماً، وسيتم دفع باقي المبلغ (<strong>{formatPrice(finalTotal - actualShippingCost)}</strong>) عند الاستلام.</span>
+                    <span>سيتم دفع إجمالي المبلغ (<strong>{formatPrice(finalTotal)}</strong>) نقداً عند الاستلام.</span>
                   )}
                 </p>
-                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
-                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#856404" /></li>
-                </ul>
-                <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
-                  <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد الدفع *</label>
-                  <input 
-                    type="text" 
-                    id="walletReferenceCod" 
-                    name="walletReference" 
-                    required={formData.paymentMethod === 'cod' && depositAmount > 0} 
-                    value={formData.walletReference} 
-                    onChange={handleInputChange} 
-                    placeholder="مثال: 01012345678"
-                    style={{ border: '1px solid #ffeeba' }}
-                  />
-                </div>
-                <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                  <label htmlFor="paymentReceiptCod" style={{ fontSize: '0.9rem', color: '#856404' }}>إرفاق سكرين شوت للتحويل *</label>
-                  <input 
-                    type="file" 
-                    id="paymentReceiptCod" 
-                    accept="image/*"
-                    required={formData.paymentMethod === 'cod' && depositAmount > 0}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setPaymentReceipt(e.target.files[0]);
-                      }
-                    }}
-                    style={{ border: '1px solid #ffeeba', padding: '8px', backgroundColor: 'white', borderRadius: '4px', width: '100%' }}
-                  />
-                  {paymentReceipt && formData.paymentMethod === 'cod' && (
-                    <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#856404', fontWeight: 'bold' }}>
-                      ✅ تم إرفاق الصورة: {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
+                {depositAmount > 0 && (
+                  <>
+                    <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
+                      {paymentSettings.wallet_instapay && (
+                        <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_instapay}</strong> <CopyButton text={paymentSettings.wallet_instapay} color="#856404" /></li>
+                      )}
+                      {paymentSettings.wallet_vodafone_cash && (
+                        <li>المحافظ الإلكترونية: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_vodafone_cash}</strong> <CopyButton text={paymentSettings.wallet_vodafone_cash} color="#856404" /></li>
+                      )}
+                    </ul>
+                    <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
+                      <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد الدفع *</label>
+                      <input 
+                        type="text" 
+                        id="walletReferenceCod" 
+                        name="walletReference" 
+                        required={depositAmount > 0} 
+                        value={formData.walletReference} 
+                        onChange={handleInputChange} 
+                        placeholder="مثال: 01012345678"
+                        style={{ border: '1px solid #ffeeba' }}
+                      />
                     </div>
-                  )}
-                </div>
+                    <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                      <label htmlFor="paymentReceiptCod" style={{ fontSize: '0.9rem', color: '#856404' }}>
+                        إرفاق سكرين شوت للتحويل {paymentSettings.require_receipt_upload ? '*' : '(اختياري)'}
+                      </label>
+                      <input 
+                        type="file" 
+                        id="paymentReceiptCod" 
+                        accept="image/*"
+                        required={paymentSettings.require_receipt_upload && depositAmount > 0}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setPaymentReceipt(e.target.files[0]);
+                          }
+                        }}
+                        style={{ border: '1px solid #ffeeba', padding: '8px', backgroundColor: 'white', borderRadius: '4px', width: '100%' }}
+                      />
+                      {paymentReceipt && formData.paymentMethod === 'cod' && (
+                        <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#856404', fontWeight: 'bold' }}>
+                          ✅ تم إرفاق الصورة: {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
-            {formData.paymentMethod === 'wallet' && (
+            {formData.paymentMethod === 'wallet' && paymentSettings.wallet_enabled && (
               <div style={{ padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
                 <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
-                  <strong>برجاء تحويل إجمالي المبلغ (<strong>{formatPrice(finalTotal)}</strong>) على أحد الأرقام التالية لتأكيد طلبك:</strong>
+                  <strong>{paymentSettings.wallet_instructions} (<strong>{formatPrice(finalTotal)}</strong>):</strong>
                 </p>
                 <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
-                  <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#1e8449" /></li>
-                  <li>المحافظ الإلكترونية (أورانج كاش/فودافون كاش): <strong style={{ direction: 'ltr', display: 'inline-block' }}>01277885159</strong> <CopyButton text="01277885159" color="#1e8449" /></li>
+                  {paymentSettings.wallet_instapay && (
+                    <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_instapay}</strong> <CopyButton text={paymentSettings.wallet_instapay} color="#1e8449" /></li>
+                  )}
+                  {paymentSettings.wallet_vodafone_cash && (
+                    <li>المحافظ الإلكترونية: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_vodafone_cash}</strong> <CopyButton text={paymentSettings.wallet_vodafone_cash} color="#1e8449" /></li>
+                  )}
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
                   <label htmlFor="walletReferenceWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
@@ -548,12 +649,14 @@ ${orderItemsText}
                   />
                 </div>
                 <div className={styles.formGroup} style={{ marginBottom: 0 }}>
-                  <label htmlFor="paymentReceiptWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>إرفاق سكرين شوت للتحويل *</label>
+                  <label htmlFor="paymentReceiptWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>
+                    إرفاق سكرين شوت للتحويل {paymentSettings.require_receipt_upload ? '*' : '(اختياري)'}
+                  </label>
                   <input 
                     type="file" 
                     id="paymentReceiptWallet" 
                     accept="image/*"
-                    required={formData.paymentMethod === 'wallet'}
+                    required={paymentSettings.require_receipt_upload && formData.paymentMethod === 'wallet'}
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setPaymentReceipt(e.target.files[0]);

@@ -4,12 +4,16 @@ import Link from 'next/link';
 
 import DateFilter from '@/components/DateFilter';
 import { governorates } from '@/data/governorates';
+import { getShippingSettings } from '@/app/actions/settings';
 
 export const revalidate = 0; // Disable caching for admin dashboard
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const resolvedParams = await searchParams;
   const period = resolvedParams.period || 'all';
+
+  const shippingSettingsRes = await getShippingSettings();
+  const currentGovernorates = shippingSettingsRes.data.governorates;
 
   const now = new Date();
   let startDate: string | null = null;
@@ -112,7 +116,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     let totalShippingLoss = 0;
 
     validOrders.forEach(order => {
-      const courierFee = governorates.find(g => g.name === order.governorate)?.shippingCost || 0;
+      const courierFee = currentGovernorates.find(g => g.name === order.governorate)?.shippingCost ?? (governorates.find(g => g.name === order.governorate)?.shippingCost || 0);
       const customerPaidShipping = order.shipping_cost || 0;
       const shippingLoss = Math.max(0, courierFee - customerPaidShipping);
       totalShippingLoss += shippingLoss;

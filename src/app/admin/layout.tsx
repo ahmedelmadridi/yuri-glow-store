@@ -46,6 +46,12 @@ export default function AdminLayout({
             <li style={{ marginBottom: '10px' }}>
               <Link href="/admin/coupons" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/coupons') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أكواد الخصم</Link>
             </li>
+            <li style={{ marginBottom: '10px' }}>
+              <Link href="/admin/shipping" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/shipping') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>أسعار الشحن</Link>
+            </li>
+            <li style={{ marginBottom: '10px' }}>
+              <Link href="/admin/payment" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/payment') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>طرق الدفع</Link>
+            </li>
           </ul>
           <button 
             onClick={() => {
