@@ -17,6 +17,8 @@ export default function AdminLogin() {
   // حالة استعادة كلمة المرور
   const [isForgotMode, setIsForgotMode] = useState(false);
   const [forgotStep, setForgotStep] = useState<'request' | 'verify'>('request');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotPin, setForgotPin] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
@@ -51,12 +53,16 @@ export default function AdminLogin() {
     setSuccessMsg('');
 
     try {
-      const res = await requestPasswordChangeOtp({ isForgotPassword: true });
+      const res = await requestPasswordChangeOtp({
+        isForgotPassword: true,
+        email: forgotEmail,
+        securityPin: forgotPin,
+      });
 
       if (res.success) {
         if (res.maskedEmail) setMaskedEmail(res.maskedEmail);
         setForgotStep('verify');
-        setSuccessMsg(res.message || 'تم إرسال رمز الاستعادة إلى بريدك الإلكتروني بنجاح!');
+        setSuccessMsg(res.message || 'تم إرسال رمز الاستعادة بنجاح!');
       } else {
         setErrorMsg(res.message || 'تعذر إرسال رمز الاستعادة');
       }
@@ -168,12 +174,40 @@ export default function AdminLogin() {
           <div>
             {forgotStep === 'request' ? (
               <form onSubmit={handleRequestForgotOtp} className={styles.form}>
-                <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: 1.6, textAlign: 'right', margin: '0 0 16px' }}>
-                  سيتم إرسال رمز تحقق سري (OTP) مكون من 6 أرقام إلى البريد الإلكتروني المسجل لإدارة المتجر لاستعادة صلاحية الدخول.
+                <p style={{ fontSize: '0.88rem', color: '#666', lineHeight: 1.5, textAlign: 'right', margin: '0 0 14px' }}>
+                  لأمان حسابك ومنع أي محاولات غير مصرح بها، أدخل البريد الإلكتروني المعتمد ورمز الأمان الرئيسي (Master PIN) لإرسال رمز التحقق:
                 </p>
 
+                <div className={styles.inputGroup}>
+                  <label htmlFor="forgotEmail">البريد الإلكتروني للإدارة</label>
+                  <input
+                    type="email"
+                    id="forgotEmail"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="yuri.glow.eg@gmail.com"
+                    dir="ltr"
+                    autoFocus
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="forgotPin">رمز الأمان السري (Master PIN)</label>
+                  <input
+                    type="password"
+                    id="forgotPin"
+                    required
+                    maxLength={10}
+                    value={forgotPin}
+                    onChange={(e) => setForgotPin(e.target.value)}
+                    placeholder="أدخل الرمز السري الخاص بك"
+                    dir="ltr"
+                  />
+                </div>
+
                 <button type="submit" className={`btn-primary ${styles.loginBtn}`} disabled={isLoading}>
-                  {isLoading ? 'جاري الإرسال...' : '📩 إرسال رمز التحقق إلى الإيميل'}
+                  {isLoading ? 'جاري التحقق والإرسال...' : '📩 إرسال رمز التحقق'}
                 </button>
 
                 <button

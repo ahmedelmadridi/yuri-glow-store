@@ -181,12 +181,27 @@ export async function logoutAdmin(): Promise<{ success: boolean }> {
 export async function requestPasswordChangeOtp(params?: {
   currentPassword?: string;
   isForgotPassword?: boolean;
+  email?: string;
+  securityPin?: string;
 }): Promise<{ success: boolean; message?: string; maskedEmail?: string }> {
   try {
     const isForgot = !!params?.isForgotPassword;
 
-    // إذا لم تكن عملية نسيان كلمة المرور، يجب التأكد من صحة كلمة المرور الحالية أولاً
-    if (!isForgot) {
+    if (isForgot) {
+      const masterPin = process.env.ADMIN_SECURITY_PIN || '2535';
+      const inputPin = params?.securityPin?.trim();
+      const inputEmail = params?.email?.trim().toLowerCase();
+      const adminEmail = (await getAdminEmail()).trim().toLowerCase();
+
+      if (!inputEmail || inputEmail !== adminEmail) {
+        return { success: false, message: 'البريد الإلكتروني للإدارة غير صحيح' };
+      }
+
+      if (!inputPin || inputPin !== masterPin) {
+        return { success: false, message: 'رمز الأمان السري (PIN) غير صحيح' };
+      }
+    } else {
+      // تغيير كلمة المرور من داخل اللوحة يتطلب كلمة المرور الحالية
       if (!params?.currentPassword) {
         return { success: false, message: 'يرجى إدخال كلمة المرور الحالية أولاً' };
       }
