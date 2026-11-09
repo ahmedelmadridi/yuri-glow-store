@@ -159,6 +159,21 @@ export default function CheckoutPage() {
           currency: 'EGP',
         });
       });
+
+      // Fire TikTok Pixel event for begin checkout
+      import('@/utils/ttpixel').then(({ trackTikTokEvent }) => {
+        trackTikTokEvent('InitiateCheckout', {
+          contents: cart.map(item => ({
+            content_id: String(item.product.id),
+            content_name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price,
+          })),
+          content_type: 'product',
+          value: totalPrice,
+          currency: 'EGP',
+        });
+      });
       } // close if (!hasTrackedRef.current)
     } // close else if
   }, [cart, isSubmitted, router, totalPrice]);
@@ -364,6 +379,21 @@ ${orderItemsText}
         currency: 'EGP',
         content_ids: cart.map(item => item.product.id),
         content_type: 'product',
+      });
+    });
+
+    // TikTok Pixel CompletePayment Event
+    import('@/utils/ttpixel').then(({ trackTikTokEvent }) => {
+      trackTikTokEvent('CompletePayment', {
+        contents: cart.map(item => ({
+          content_id: String(item.product.id),
+          content_name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        content_type: 'product',
+        value: finalTotal,
+        currency: 'EGP',
       });
     });
 

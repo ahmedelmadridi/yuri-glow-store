@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { trackEvent } from '@/utils/fpixel';
+import { trackTikTokEvent } from '@/utils/ttpixel';
 
 interface ProductViewTrackerProps {
   productId: number;
@@ -13,6 +14,14 @@ export default function ProductViewTracker({ productId, productName, price }: Pr
   useEffect(() => {
     trackEvent('ViewContent', {
       content_ids: [productId],
+      content_name: productName,
+      content_type: 'product',
+      value: price,
+      currency: 'EGP'
+    });
+
+    trackTikTokEvent('ViewContent', {
+      content_id: String(productId),
       content_name: productName,
       content_type: 'product',
       value: price,

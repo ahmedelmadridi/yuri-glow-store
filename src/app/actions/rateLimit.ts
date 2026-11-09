@@ -44,3 +44,23 @@ export async function checkRateLimit(): Promise<{ success: boolean; message?: st
     return { success: true }; 
   }
 }
+
+/**
+ * دالة عامة لتحديد معدل الطلبات حسب المفتاح
+ */
+export async function checkCustomRateLimit(key: string, maxRequests: number, windowSeconds: number): Promise<boolean> {
+  const now = Date.now();
+  const windowMs = windowSeconds * 1000;
+
+  let requestTimestamps = rateLimitStore.get(key) || [];
+  requestTimestamps = requestTimestamps.filter(timestamp => now - timestamp < windowMs);
+
+  if (requestTimestamps.length >= maxRequests) {
+    return false;
+  }
+
+  requestTimestamps.push(now);
+  rateLimitStore.set(key, requestTimestamps);
+  return true;
+}
+

@@ -1,20 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifySessionToken, ADMIN_COOKIE_NAME } from '@/lib/session';
 
-export function middleware(request: NextRequest) {
-  // Check if we are trying to access the admin area
+export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    // Exclude the login page itself from the check
+    // صفحة تسجيل الدخول
     if (request.nextUrl.pathname === '/admin/login') {
+      const adminSession = request.cookies.get(ADMIN_COOKIE_NAME);
+      if (adminSession?.value) {
+        const isValid = await verifySessionToken(adminSession.value);
+        if (isValid) {
+          return NextResponse.redirect(new URL('/admin', request.url));
+        }
+      }
       return NextResponse.next();
     }
 
-    // Check for the admin session cookie
-    const adminSession = request.cookies.get('admin_session');
-
-    if (!adminSession || adminSession.value !== 'authenticated') {
-      // Redirect to login if not authenticated
+    // بقية صفحات لوحة التحكم
+    const adminSession = request.cookies.get(ADMIN_COOKIE_NAME);
+    if (!adminSession?.value) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+
+    const isValid = await verifySessionToken(adminSession.value);
+    if (!isValid) {
+      const response = NextResponse.redirect(new URL('/admin/login', request.url));
+      response.cookies.delete(ADMIN_COOKIE_NAME);
+      return response;
     }
   }
 

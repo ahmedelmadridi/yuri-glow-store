@@ -1,38 +1,40 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
+import {
+  loginAdmin,
+  requestPasswordChangeOtp,
+  confirmPasswordChange,
+} from '@/app/actions/admin-auth';
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
+  // حالة استعادة كلمة المرور
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [forgotStep, setForgotStep] = useState<'request' | 'verify'>('request');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
+
+  // تسجيل الدخول العادي
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg('');
+    setSuccessMsg('');
 
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
+      const res = await loginAdmin(password);
 
-      const data = await res.json();
-
-      if (data.success) {
-        // Set the cookie directly in the browser to bypass any API dropping issues
-        document.cookie = "admin_session=authenticated; path=/; max-age=86400; SameSite=Lax";
-        // Use window.location to force a full page reload and bypass Next.js router cache
+      if (res.success) {
         window.location.href = '/admin';
       } else {
-        setErrorMsg(data.message || 'فشل تسجيل الدخول');
+        setErrorMsg(res.message || 'فشل تسجيل الدخول');
         setIsLoading(false);
       }
     } catch (err) {
@@ -41,32 +43,218 @@ export default function AdminLogin() {
     }
   };
 
+  // طلب رمز استعادة كلمة المرور
+  const handleRequestForgotOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const res = await requestPasswordChangeOtp({ isForgotPassword: true });
+
+      if (res.success) {
+        if (res.maskedEmail) setMaskedEmail(res.maskedEmail);
+        setForgotStep('verify');
+        setSuccessMsg(res.message || 'تم إرسال رمز الاستعادة إلى بريدك الإلكتروني بنجاح!');
+      } else {
+        setErrorMsg(res.message || 'تعذر إرسال رمز الاستعادة');
+      }
+    } catch (err) {
+      setErrorMsg('حدث خطأ أثناء طلب رمز الاستعادة');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // تأكيد وتعيين كلمة المرور الجديدة
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    if (newPassword.length < 6) {
+      setErrorMsg('كلمة المرور الجديدة يجب ألا تقل عن 6 خانات');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const res = await confirmPasswordChange(otp, newPassword);
+
+      if (res.success) {
+        setSuccessMsg('تم تعيين كلمة المرور بنجاح! جاري تحويلك للوحة التحكم...');
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 1500);
+      } else {
+        setErrorMsg(res.message || 'رمز التحقق غير صحيح');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setErrorMsg('حدث خطأ أثناء تحديث كلمة المرور');
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={styles.loginContainer}>
-      <div className={styles.loginBox}>
+      <div className={styles.loginBox} style={{ maxWidth: isForgotMode ? '440px' : '400px' }}>
         <h1 className={styles.logo}>Yuri Glow</h1>
-        <h2 className={styles.title}>لوحة تحكم الإدارة</h2>
-        
-        <form onSubmit={handleLogin} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="password">كلمة المرور</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="أدخل كلمة المرور"
-              dir="ltr"
-            />
+        <h2 className={styles.title}>
+          {isForgotMode ? 'استعادة كلمة المرور' : 'لوحة تحكم الإدارة'}
+        </h2>
+
+        {successMsg && (
+          <div style={{
+            backgroundColor: '#e8f8f5',
+            color: '#27ae60',
+            padding: '12px',
+            borderRadius: '6px',
+            marginBottom: '16px',
+            fontSize: '0.9rem',
+            textAlign: 'right'
+          }}>
+            {successMsg}
           </div>
-          
-          {errorMsg && <div className={styles.error}>{errorMsg}</div>}
-          
-          <button type="submit" className={`btn-primary ${styles.loginBtn}`} disabled={isLoading}>
-            {isLoading ? 'جاري التحقق...' : 'دخول'}
-          </button>
-        </form>
+        )}
+
+        {errorMsg && <div className={styles.error} style={{ marginBottom: '16px' }}>{errorMsg}</div>}
+
+        {!isForgotMode ? (
+          /* شاشة تسجيل الدخول العادية */
+          <form onSubmit={handleLogin} className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="password">كلمة المرور</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="أدخل كلمة المرور"
+                dir="ltr"
+                autoFocus
+              />
+            </div>
+
+            <button type="submit" className={`btn-primary ${styles.loginBtn}`} disabled={isLoading}>
+              {isLoading ? 'جاري التحقق...' : 'دخول'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsForgotMode(true);
+                setErrorMsg('');
+                setSuccessMsg('');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#7f8c8d',
+                cursor: 'pointer',
+                fontSize: '0.88rem',
+                marginTop: '12px',
+                textDecoration: 'underline'
+              }}
+            >
+              نسيت كلمة المرور؟
+            </button>
+          </form>
+        ) : (
+          /* شاشة استعادة كلمة المرور */
+          <div>
+            {forgotStep === 'request' ? (
+              <form onSubmit={handleRequestForgotOtp} className={styles.form}>
+                <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: 1.6, textAlign: 'right', margin: '0 0 16px' }}>
+                  سيتم إرسال رمز تحقق سري (OTP) مكون من 6 أرقام إلى البريد الإلكتروني المسجل لإدارة المتجر لاستعادة صلاحية الدخول.
+                </p>
+
+                <button type="submit" className={`btn-primary ${styles.loginBtn}`} disabled={isLoading}>
+                  {isLoading ? 'جاري الإرسال...' : '📩 إرسال رمز التحقق إلى الإيميل'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotMode(false);
+                    setErrorMsg('');
+                    setSuccessMsg('');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#7f8c8d',
+                    cursor: 'pointer',
+                    fontSize: '0.88rem',
+                    marginTop: '12px'
+                  }}
+                >
+                  العودة لتسجيل الدخول
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPassword} className={styles.form}>
+                <p style={{ fontSize: '0.85rem', color: '#666', textAlign: 'right', margin: '0 0 12px' }}>
+                  أدخل رمز التحقق الذي وصل إلى بريدك: <strong dir="ltr">{maskedEmail}</strong>
+                </p>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="otp">رمز التحقق (OTP)</label>
+                  <input
+                    type="text"
+                    id="otp"
+                    required
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="------"
+                    dir="ltr"
+                    autoFocus
+                    style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '1.4rem', fontWeight: 'bold' }}
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="newPassword">كلمة المرور الجديدة</label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="6 خانات على الأقل"
+                    dir="ltr"
+                  />
+                </div>
+
+                <button type="submit" className={`btn-primary ${styles.loginBtn}`} disabled={isLoading}>
+                  {isLoading ? 'جاري التحقق...' : '✅ تعيين كلمة المرور والدخول'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotStep('request');
+                    setErrorMsg('');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#7f8c8d',
+                    cursor: 'pointer',
+                    fontSize: '0.88rem',
+                    marginTop: '8px'
+                  }}
+                >
+                  إعادة إرسال الرمز
+                </button>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

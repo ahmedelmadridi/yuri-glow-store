@@ -52,9 +52,14 @@ export default function AdminLayout({
             <li style={{ marginBottom: '10px' }}>
               <Link href="/admin/payment" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/payment') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>طرق الدفع</Link>
             </li>
+            <li style={{ marginBottom: '10px' }}>
+              <Link href="/admin/security" style={{ display: 'block', padding: '10px', color: 'white', textDecoration: 'none', borderRadius: '4px', backgroundColor: pathname.startsWith('/admin/security') ? 'rgba(255,255,255,0.1)' : 'transparent' }}>الأمان وكلمة المرور 🔐</Link>
+            </li>
           </ul>
           <button 
-            onClick={() => {
+            onClick={async () => {
+              const { logoutAdmin } = await import('@/app/actions/admin-auth');
+              await logoutAdmin();
               document.cookie = "admin_session=; path=/; max-age=0; SameSite=Lax";
               window.location.href = '/admin/login';
             }}

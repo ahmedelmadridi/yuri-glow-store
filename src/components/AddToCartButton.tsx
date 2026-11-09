@@ -3,6 +3,7 @@
 import { useCart, Product } from '@/context/CartContext';
 import { useState } from 'react';
 import { trackEvent } from '@/utils/fpixel';
+import { trackTikTokEvent } from '@/utils/ttpixel';
 import styles from './AddToCartButton.module.css';
 
 export default function AddToCartButton({ product }: { product: Product }) {
@@ -18,7 +19,16 @@ export default function AddToCartButton({ product }: { product: Product }) {
       content_name: product.name,
       content_ids: [product.id],
       content_type: 'product',
-      value: product.price,
+      value: product.price * quantity,
+      currency: 'EGP'
+    });
+
+    // TikTok Pixel AddToCart Event
+    trackTikTokEvent('AddToCart', {
+      content_id: String(product.id),
+      content_name: product.name,
+      content_type: 'product',
+      value: product.price * quantity,
       currency: 'EGP'
     });
 
