@@ -5,6 +5,7 @@ import Link from 'next/link';
 import DateFilter from '@/components/DateFilter';
 import { governorates } from '@/data/governorates';
 import { getShippingSettings } from '@/app/actions/settings';
+import ExpandableContainer from '@/components/ExpandableContainer';
 
 export const revalidate = 0; // Disable caching for admin dashboard
 
@@ -259,11 +260,10 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   });
 
   const bestSellers = Object.values(productSalesCount)
-    .sort((a, b) => b.quantity - a.quantity)
-    .slice(0, 6);
+    .sort((a, b) => b.quantity - a.quantity);
 
-  // Inventory Alerts (Products with stock <= 5)
-  const lowStockProducts = products?.filter(p => (p.stock_quantity || 0) <= 5) || [];
+  // Inventory Alerts (Products with stock strictly less than 5)
+  const lowStockProducts = products?.filter(p => (p.stock_quantity ?? 0) < 5) || [];
 
   // Wishlist Analytics Processing
   const productMap: Record<number, { name: string; image: string; stock_quantity: number }> = {};
@@ -294,8 +294,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   });
 
   const topWishlist = Object.values(wishlistCounts)
-    .sort((a, b) => b.adds - a.adds)
-    .slice(0, 6);
+    .sort((a, b) => b.adds - a.adds);
 
   const totalWishlistAdds = (wishlistData || []).filter((e: any) => e.action === 'add').length;
 
@@ -319,8 +318,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   });
 
   const topSearches = Object.values(searchCounts)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+    .sort((a, b) => b.count - a.count);
 
   const totalSearches = (searchLogsData || []).length;
 
@@ -461,17 +459,37 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
             </span>
           </div>
           {bestSellers.length > 0 ? (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {bestSellers.map((item, idx) => (
-                <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: idx !== bestSellers.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                  <span style={{ fontWeight: '500' }}>{item.name}</span>
-                  <div style={{ display: 'flex', gap: '16px', color: 'var(--color-text-light)' }}>
-                    <span>{item.quantity} قطعة</span>
-                    <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{formatPrice(item.revenue)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <ExpandableContainer
+              totalCount={bestSellers.length}
+              initialChildren={
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {bestSellers.slice(0, 5).map((item, idx) => (
+                    <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: idx !== Math.min(bestSellers.length, 5) - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                      <span style={{ fontWeight: '500' }}>{item.name}</span>
+                      <div style={{ display: 'flex', gap: '16px', color: 'var(--color-text-light)' }}>
+                        <span>{item.quantity} قطعة</span>
+                        <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{formatPrice(item.revenue)}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              }
+              expandedChildren={
+                bestSellers.length > 5 ? (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: '1px solid var(--color-border)' }}>
+                    {bestSellers.slice(5).map((item, idx) => (
+                      <li key={idx + 5} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: idx !== bestSellers.length - 6 ? '1px solid var(--color-border)' : 'none' }}>
+                        <span style={{ fontWeight: '500' }}>{item.name}</span>
+                        <div style={{ display: 'flex', gap: '16px', color: 'var(--color-text-light)' }}>
+                          <span>{item.quantity} قطعة</span>
+                          <span style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>{formatPrice(item.revenue)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : undefined
+              }
+            />
           ) : (
             <p style={{ color: 'var(--color-text-light)' }}>لا توجد مبيعات بعد.</p>
           )}
@@ -479,31 +497,61 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
         {/* Low Stock Alerts */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.2rem', color: '#e74c3c' }}>تنبيهات المخزون (أوشك على النفاذ) ⚠️</h2>
+          <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: '1.2rem', color: '#e74c3c' }}>تنبيهات المخزون (أقل من 5 قطع) ⚠️</h2>
           {lowStockProducts.length > 0 ? (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {lowStockProducts.map((product, idx) => (
-                <li key={product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== lowStockProducts.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={product.image} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
-                    <Link href={`/admin/products/${product.id}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
-                      {product.name}
-                    </Link>
-                  </div>
-                  <span style={{ 
-                    padding: '4px 12px', 
-                    borderRadius: '20px', 
-                    fontWeight: 'bold',
-                    backgroundColor: product.stock_quantity === 0 ? '#fceceb' : '#fff3cd',
-                    color: product.stock_quantity === 0 ? '#c62828' : '#856404'
-                  }}>
-                    {product.stock_quantity === 0 ? 'نفذت الكمية' : `متبقي ${product.stock_quantity}`}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <ExpandableContainer
+              totalCount={lowStockProducts.length}
+              initialChildren={
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {lowStockProducts.slice(0, 5).map((product, idx) => (
+                    <li key={product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== Math.min(lowStockProducts.length, 5) - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img src={product.image} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                        <Link href={`/admin/products/${product.id}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                          {product.name}
+                        </Link>
+                      </div>
+                      <span style={{ 
+                        padding: '4px 12px', 
+                        borderRadius: '20px', 
+                        fontWeight: 'bold',
+                        backgroundColor: product.stock_quantity === 0 ? '#fceceb' : '#fff3cd',
+                        color: product.stock_quantity === 0 ? '#c62828' : '#856404'
+                      }}>
+                        {product.stock_quantity === 0 ? 'نفذت الكمية' : `متبقي ${product.stock_quantity}`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              }
+              expandedChildren={
+                lowStockProducts.length > 5 ? (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: '1px solid var(--color-border)' }}>
+                    {lowStockProducts.slice(5).map((product, idx) => (
+                      <li key={product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== lowStockProducts.length - 6 ? '1px solid var(--color-border)' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <img src={product.image} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                          <Link href={`/admin/products/${product.id}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                            {product.name}
+                          </Link>
+                        </div>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '20px', 
+                          fontWeight: 'bold',
+                          backgroundColor: product.stock_quantity === 0 ? '#fceceb' : '#fff3cd',
+                          color: product.stock_quantity === 0 ? '#c62828' : '#856404'
+                        }}>
+                          {product.stock_quantity === 0 ? 'نفذت الكمية' : `متبقي ${product.stock_quantity}`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : undefined
+              }
+            />
           ) : (
-            <p style={{ color: 'var(--color-text-light)' }}>جميع المنتجات متوفرة بكميات كافية.</p>
+            <p style={{ color: 'var(--color-text-light)' }}>جميع المنتجات متوفرة بكميات كافية (5 قطع فأكثر).</p>
           )}
         </div>
 
@@ -530,35 +578,73 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
               <div style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
                 إجمالي الإضافات للمفضلة: <strong style={{ color: 'var(--color-primary-dark)' }}>{totalWishlistAdds}</strong>
               </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {topWishlist.map((item) => (
-                  <li key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {item.image && (
-                        <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
-                      )}
-                      <div>
-                        <Link href={`/admin/products/${item.productId}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
-                          {item.name}
-                        </Link>
-                        <div style={{ fontSize: '0.75rem', color: item.stock === 0 ? '#c62828' : 'var(--color-text-light)' }}>
-                          {item.stock === 0 ? 'نفذت الكمية' : `المتبقي في المخزون: ${item.stock}`}
+              <ExpandableContainer
+                totalCount={topWishlist.length}
+                initialChildren={
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {topWishlist.slice(0, 5).map((item, idx) => (
+                      <li key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== Math.min(topWishlist.length, 5) - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {item.image && (
+                            <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                          )}
+                          <div>
+                            <Link href={`/admin/products/${item.productId}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                              {item.name}
+                            </Link>
+                            <div style={{ fontSize: '0.75rem', color: item.stock === 0 ? '#c62828' : 'var(--color-text-light)' }}>
+                              {item.stock === 0 ? 'نفذت الكمية' : `المتبقي في المخزون: ${item.stock}`}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <span style={{ 
-                      padding: '4px 12px', 
-                      borderRadius: '20px', 
-                      fontWeight: 'bold',
-                      fontSize: '0.85rem',
-                      backgroundColor: '#fceceb',
-                      color: '#e74c3c'
-                    }}>
-                      {item.adds} إضافة ♥
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '20px', 
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          backgroundColor: '#fceceb',
+                          color: '#e74c3c'
+                        }}>
+                          {item.adds} إضافة ♥
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                }
+                expandedChildren={
+                  topWishlist.length > 5 ? (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: '1px solid var(--color-border)' }}>
+                      {topWishlist.slice(5).map((item, idx) => (
+                        <li key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== topWishlist.length - 6 ? '1px solid var(--color-border)' : 'none' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {item.image && (
+                              <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                            )}
+                            <div>
+                              <Link href={`/admin/products/${item.productId}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                                {item.name}
+                              </Link>
+                              <div style={{ fontSize: '0.75rem', color: item.stock === 0 ? '#c62828' : 'var(--color-text-light)' }}>
+                                {item.stock === 0 ? 'نفذت الكمية' : `المتبقي في المخزون: ${item.stock}`}
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{ 
+                            padding: '4px 12px', 
+                            borderRadius: '20px', 
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            backgroundColor: '#fceceb',
+                            color: '#e74c3c'
+                          }}>
+                            {item.adds} إضافة ♥
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : undefined
+                }
+              />
             </div>
           ) : (
             <p style={{ color: 'var(--color-text-light)' }}>لا توجد إضافات للمفضلة في هذه الفترة بعد.</p>
@@ -583,46 +669,95 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
               <div style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
                 إجمالي عمليات البحث: <strong style={{ color: 'var(--color-primary-dark)' }}>{totalSearches}</strong>
               </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {topSearches.map((item, idx) => (
-                  <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== topSearches.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ 
-                        width: '24px', 
-                        height: '24px', 
-                        borderRadius: '50%', 
-                        backgroundColor: idx < 3 ? 'var(--color-primary)' : '#eee', 
-                        color: idx < 3 ? 'white' : '#666',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold'
-                      }}>
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <span style={{ fontWeight: '600' }}>"{item.query}"</span>
-                        {item.lastSearched && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
-                            آخر بحث: {formatTimeAgo(item.lastSearched)}
+              <ExpandableContainer
+                totalCount={topSearches.length}
+                initialChildren={
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {topSearches.slice(0, 5).map((item, idx) => (
+                      <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== Math.min(topSearches.length, 5) - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ 
+                            width: '24px', 
+                            height: '24px', 
+                            borderRadius: '50%', 
+                            backgroundColor: idx < 3 ? 'var(--color-primary)' : '#eee', 
+                            color: idx < 3 ? 'white' : '#666',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold'
+                          }}>
+                            {idx + 1}
+                          </span>
+                          <div>
+                            <span style={{ fontWeight: '600' }}>"{item.query}"</span>
+                            {item.lastSearched && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
+                                آخر بحث: {formatTimeAgo(item.lastSearched)}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    <span style={{ 
-                      padding: '4px 10px', 
-                      borderRadius: '12px', 
-                      fontWeight: 'bold',
-                      fontSize: '0.85rem',
-                      backgroundColor: '#e8f4fd',
-                      color: '#1976d2'
-                    }}>
-                      {item.count} مرة
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                        </div>
+                        <span style={{ 
+                          padding: '4px 10px', 
+                          borderRadius: '12px', 
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          backgroundColor: '#e8f4fd',
+                          color: '#1976d2'
+                        }}>
+                          {item.count} مرة
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                }
+                expandedChildren={
+                  topSearches.length > 5 ? (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: '1px solid var(--color-border)' }}>
+                      {topSearches.slice(5).map((item, idx) => (
+                        <li key={idx + 5} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== topSearches.length - 6 ? '1px solid var(--color-border)' : 'none' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ 
+                              width: '24px', 
+                              height: '24px', 
+                              borderRadius: '50%', 
+                              backgroundColor: '#eee', 
+                              color: '#666',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.75rem',
+                              fontWeight: 'bold'
+                            }}>
+                              {idx + 6}
+                            </span>
+                            <div>
+                              <span style={{ fontWeight: '600' }}>"{item.query}"</span>
+                              {item.lastSearched && (
+                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
+                                  آخر بحث: {formatTimeAgo(item.lastSearched)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <span style={{ 
+                            padding: '4px 10px', 
+                            borderRadius: '12px', 
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            backgroundColor: '#e8f4fd',
+                            color: '#1976d2'
+                          }}>
+                            {item.count} مرة
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : undefined
+                }
+              />
             </div>
           ) : (
             <p style={{ color: 'var(--color-text-light)' }}>لا توجد عمليات بحث مسجلة في هذه الفترة بعد.</p>
