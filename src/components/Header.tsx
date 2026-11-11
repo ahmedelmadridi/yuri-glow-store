@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
-import SearchBar from './SearchBar';
 import WishlistHeaderLink from './WishlistHeaderLink';
 
 import AnnouncementBar from './AnnouncementBar';
@@ -39,11 +38,7 @@ export default function Header() {
           <Link href="/about">من نحن</Link>
           <Link href="/contact">اتصل بنا</Link>
         </nav>
-        <div className="header-search-desktop" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 10px' }}>
-          <Suspense fallback={null}>
-            <SearchBar compact />
-          </Suspense>
-        </div>
+
         <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <WishlistHeaderLink />
           <Link href="/cart" className="cart-btn" aria-label="سلة المشتريات">
