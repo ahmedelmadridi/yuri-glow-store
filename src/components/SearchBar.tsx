@@ -77,6 +77,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
           placeholder="ابحث عن منتج..."
           style={{
             flex: 1,
+            minWidth: 0,
             padding: '12px 16px',
             border: '1px solid var(--color-border)',
             borderRadius: '30px',

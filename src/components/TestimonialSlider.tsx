@@ -55,7 +55,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: Test
 
   return (
     <div 
-      style={{ position: 'relative', width: '100%', padding: '0 10px' }}
+      style={{ position: 'relative', width: '100%', padding: '0 10px', overflow: 'hidden' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -108,7 +108,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: Test
             onClick={scrollPrev}
             style={{
               position: 'absolute',
-              right: '-10px',
+              right: '2px',
               top: '50%',
               transform: 'translateY(-50%)',
               backgroundColor: 'white',
@@ -135,7 +135,7 @@ export default function TestimonialSlider({ testimonials }: { testimonials: Test
             onClick={scrollNext}
             style={{
               position: 'absolute',
-              left: '-10px',
+              left: '2px',
               top: '50%',
               transform: 'translateY(-50%)',
               backgroundColor: 'white',

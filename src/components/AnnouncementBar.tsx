@@ -41,16 +41,27 @@ export default function AnnouncementBar() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      position: 'relative'
+      position: 'relative',
+      overflow: 'hidden',
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box'
     }}>
       {messages.map((msg, idx) => (
         <div 
           key={idx}
           style={{
             position: messages.length > 1 ? 'absolute' : 'static',
+            inset: messages.length > 1 ? 0 : undefined,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0 8px',
             opacity: idx === currentIndex ? 1 : 0,
             transition: 'opacity 0.5s ease-in-out',
             width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
             pointerEvents: idx === currentIndex ? 'auto' : 'none'
           }}
         >

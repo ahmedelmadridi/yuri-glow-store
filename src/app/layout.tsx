@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { Inter, Playfair_Display, Cairo } from 'next/font/google';
 import { CartProvider } from '@/context/CartContext';
@@ -21,6 +21,12 @@ const cairo = Cairo({
   weight: ['400', '600', '700'],
   variable: '--font-cairo',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.yurigloweg.com'),

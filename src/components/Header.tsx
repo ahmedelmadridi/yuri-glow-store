@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import SearchBar from './SearchBar';
@@ -13,6 +13,13 @@ import { usePathname } from 'next/navigation';
 export default function Header() {
   const { totalItems } = useCart();
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Reset any unwanted horizontal scroll offset caused by Android in-app browsers in RTL
+    if (typeof window !== 'undefined' && window.scrollX !== 0) {
+      window.scrollTo(0, window.scrollY);
+    }
+  }, [pathname]);
 
   if (pathname.startsWith('/admin')) {
     return null;
