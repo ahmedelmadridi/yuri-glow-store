@@ -6,6 +6,7 @@ import { getProducts, Product } from '@/data/products';
 import { createProductSlug } from '@/utils/slug';
 import { formatPrice } from '@/utils/format';
 import Link from 'next/link';
+import { trackSearchQuery } from '@/app/actions/track';
 
 export default function SearchBar({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
@@ -49,8 +50,10 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setShowDropdown(false);
-    if (query.trim()) {
-      router.push(`/products?q=${encodeURIComponent(query)}`);
+    const trimmed = query.trim();
+    if (trimmed) {
+      trackSearchQuery(trimmed).catch(console.error);
+      router.push(`/products?q=${encodeURIComponent(trimmed)}`);
     } else {
       router.push('/products');
     }
@@ -122,7 +125,12 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
                 <li key={product.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                   <Link 
                     href={`/products/${createProductSlug(product.name, product.id)}`}
-                    onClick={() => setShowDropdown(false)}
+                    onClick={() => {
+                      setShowDropdown(false);
+                      if (query.trim()) {
+                        trackSearchQuery(query.trim()).catch(console.error);
+                      }
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',

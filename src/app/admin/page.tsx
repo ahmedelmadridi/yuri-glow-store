@@ -85,6 +85,31 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
   const metricsRows = allMetricsData || [];
 
+  // Fetch Wishlist Events (for the selected period or all-time)
+  let wishlistQuery = supabaseAdmin
+    .from('wishlist_events')
+    .select('id, product_id, action, created_at');
+
+  if (startDate) {
+    wishlistQuery = wishlistQuery.gte('created_at', startDate);
+  }
+
+  const { data: wishlistData, error: wishlistError } = await wishlistQuery;
+
+  // Fetch Search Logs (for the selected period or latest 1000)
+  let searchLogsQuery = supabaseAdmin
+    .from('search_logs')
+    .select('id, query, created_at')
+    .order('created_at', { ascending: false });
+
+  if (startDate) {
+    searchLogsQuery = searchLogsQuery.gte('created_at', startDate);
+  } else {
+    searchLogsQuery = searchLogsQuery.limit(1000);
+  }
+
+  const { data: searchLogsData, error: searchError } = await searchLogsQuery;
+
   if (ordersError || productsError || metricsError) {
     return <div>خطأ في جلب البيانات</div>;
   }
@@ -239,6 +264,84 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
   // Inventory Alerts (Products with stock <= 5)
   const lowStockProducts = products?.filter(p => (p.stock_quantity || 0) <= 5) || [];
+
+  // Wishlist Analytics Processing
+  const productMap: Record<number, { name: string; image: string; stock_quantity: number }> = {};
+  products?.forEach(p => {
+    productMap[p.id] = {
+      name: p.name,
+      image: p.image,
+      stock_quantity: p.stock_quantity ?? 0,
+    };
+  });
+
+  const wishlistCounts: Record<number, { productId: number; name: string; image: string; adds: number; stock: number }> = {};
+  (wishlistData || []).forEach((event: any) => {
+    if (event.action === 'add') {
+      const pId = Number(event.product_id);
+      const productInfo = productMap[pId] || { name: `منتج #${pId}`, image: '', stock: 0 };
+      if (!wishlistCounts[pId]) {
+        wishlistCounts[pId] = {
+          productId: pId,
+          name: productInfo.name,
+          image: productInfo.image,
+          adds: 0,
+          stock: productInfo.stock_quantity,
+        };
+      }
+      wishlistCounts[pId].adds += 1;
+    }
+  });
+
+  const topWishlist = Object.values(wishlistCounts)
+    .sort((a, b) => b.adds - a.adds)
+    .slice(0, 6);
+
+  const totalWishlistAdds = (wishlistData || []).filter((e: any) => e.action === 'add').length;
+
+  // Search Analytics Processing
+  const searchCounts: Record<string, { query: string; count: number; lastSearched: string }> = {};
+  (searchLogsData || []).forEach((log: any) => {
+    const rawQ = (log.query || '').trim();
+    if (!rawQ) return;
+    const lowerQ = rawQ.toLowerCase();
+    if (!searchCounts[lowerQ]) {
+      searchCounts[lowerQ] = {
+        query: rawQ,
+        count: 0,
+        lastSearched: log.created_at,
+      };
+    }
+    searchCounts[lowerQ].count += 1;
+    if (new Date(log.created_at) > new Date(searchCounts[lowerQ].lastSearched)) {
+      searchCounts[lowerQ].lastSearched = log.created_at;
+    }
+  });
+
+  const topSearches = Object.values(searchCounts)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const totalSearches = (searchLogsData || []).length;
+
+  const formatTimeAgo = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 1) return 'الآن';
+      if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+      if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+      if (diffDays === 1) return 'أمس';
+      if (diffDays < 30) return `منذ ${diffDays} يوم`;
+      return date.toLocaleDateString('ar-EG');
+    } catch {
+      return '';
+    }
+  };
 
   // Helper to render trend badges
   const renderTrendBadge = (change: { percent: number; direction: 'up' | 'down' | 'neutral' } | null) => {
@@ -401,6 +504,128 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
             </ul>
           ) : (
             <p style={{ color: 'var(--color-text-light)' }}>جميع المنتجات متوفرة بكميات كافية.</p>
+          )}
+        </div>
+
+      </div>
+
+      {/* Search & Wishlist Analytics Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-xl)', marginTop: 'var(--spacing-xl)' }}>
+        
+        {/* Most Wishlisted Products */}
+        <div style={{ backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>المنتجات الأكثر في المفضلة ❤️</h2>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+              {period === 'all' ? 'كل الأوقات' : period === 'today' ? 'اليوم' : period === '7d' ? 'آخر 7 أيام' : period === '30d' ? 'آخر 30 يوم' : 'آخر سنة'}
+            </span>
+          </div>
+
+          {wishlistError ? (
+            <div style={{ padding: '16px', backgroundColor: '#fff8e1', borderRadius: '8px', border: '1px solid #ffe082', color: '#856404', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              ⚠️ لتفعيل تتبع المفضلة، يرجى تشغيل كود SQL من ملف <code>analytics.sql</code> في Supabase SQL Editor.
+            </div>
+          ) : topWishlist.length > 0 ? (
+            <div>
+              <div style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
+                إجمالي الإضافات للمفضلة: <strong style={{ color: 'var(--color-primary-dark)' }}>{totalWishlistAdds}</strong>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {topWishlist.map((item) => (
+                  <li key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {item.image && (
+                        <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                      )}
+                      <div>
+                        <Link href={`/admin/products/${item.productId}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                          {item.name}
+                        </Link>
+                        <div style={{ fontSize: '0.75rem', color: item.stock === 0 ? '#c62828' : 'var(--color-text-light)' }}>
+                          {item.stock === 0 ? 'نفذت الكمية' : `المتبقي في المخزون: ${item.stock}`}
+                        </div>
+                      </div>
+                    </div>
+                    <span style={{ 
+                      padding: '4px 12px', 
+                      borderRadius: '20px', 
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                      backgroundColor: '#fceceb',
+                      color: '#e74c3c'
+                    }}>
+                      {item.adds} إضافة ♥
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p style={{ color: 'var(--color-text-light)' }}>لا توجد إضافات للمفضلة في هذه الفترة بعد.</p>
+          )}
+        </div>
+
+        {/* Top Search Queries */}
+        <div style={{ backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>الكلمات الأكثر بحثاً في المتجر 🔍</h2>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+              {period === 'all' ? 'كل الأوقات' : period === 'today' ? 'اليوم' : period === '7d' ? 'آخر 7 أيام' : period === '30d' ? 'آخر 30 يوم' : 'آخر سنة'}
+            </span>
+          </div>
+
+          {searchError ? (
+            <div style={{ padding: '16px', backgroundColor: '#fff8e1', borderRadius: '8px', border: '1px solid #ffe082', color: '#856404', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              ⚠️ لتفعيل تتبع الكلمات الأكثر بحثاً، يرجى تشغيل كود SQL من ملف <code>analytics.sql</code> في Supabase SQL Editor.
+            </div>
+          ) : topSearches.length > 0 ? (
+            <div>
+              <div style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
+                إجمالي عمليات البحث: <strong style={{ color: 'var(--color-primary-dark)' }}>{totalSearches}</strong>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {topSearches.map((item, idx) => (
+                  <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== topSearches.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ 
+                        width: '24px', 
+                        height: '24px', 
+                        borderRadius: '50%', 
+                        backgroundColor: idx < 3 ? 'var(--color-primary)' : '#eee', 
+                        color: idx < 3 ? 'white' : '#666',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold'
+                      }}>
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <span style={{ fontWeight: '600' }}>"{item.query}"</span>
+                        {item.lastSearched && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>
+                            آخر بحث: {formatTimeAgo(item.lastSearched)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <span style={{ 
+                      padding: '4px 10px', 
+                      borderRadius: '12px', 
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                      backgroundColor: '#e8f4fd',
+                      color: '#1976d2'
+                    }}>
+                      {item.count} مرة
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p style={{ color: 'var(--color-text-light)' }}>لا توجد عمليات بحث مسجلة في هذه الفترة بعد.</p>
           )}
         </div>
 

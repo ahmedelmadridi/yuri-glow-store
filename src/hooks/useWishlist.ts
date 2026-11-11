@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { trackWishlistEvent } from '@/app/actions/track';
 
 export function useWishlist() {
   const [wishlist, setWishlist] = useState<number[]>([]);
@@ -32,7 +33,8 @@ export function useWishlist() {
 
   const toggleWishlist = (productId: number) => {
     let newWishlist = [...wishlist];
-    if (newWishlist.includes(productId)) {
+    const isAdding = !newWishlist.includes(productId);
+    if (!isAdding) {
       newWishlist = newWishlist.filter(id => id !== productId);
     } else {
       newWishlist.push(productId);
@@ -42,6 +44,9 @@ export function useWishlist() {
     localStorage.setItem('yuri_wishlist', JSON.stringify(newWishlist));
     // Dispatch event so other components (like header) know it changed
     window.dispatchEvent(new Event('wishlist-updated'));
+
+    // Track wishlist action in server analytics (non-blocking)
+    trackWishlistEvent(productId, isAdding ? 'add' : 'remove').catch(console.error);
   };
 
   const isInWishlist = (productId: number) => wishlist.includes(productId);

@@ -345,8 +345,10 @@ export default function CheckoutPage() {
         paymentText = `${paymentSettings.cod_title}\n${depositAmount > 0 ? `(تم دفع مبلغ ${depositAmount} مقدماً من: ${formData.walletReference || 'لم يحدد'})` : '(بدون عربون)'}`;
       }
 
+      const shortOrderId = orderId.split('-')[0].toUpperCase();
       const message = `
 📦 <b>طلب جديد!</b> (Yuri Glow)
+🆔 <b>كود الطلب:</b> #${shortOrderId}
 
 👤 <b>الاسم:</b> ${formData.name}
 📱 <b>الهاتف:</b> ${formData.phone}
@@ -418,7 +420,7 @@ ${orderItemsText}
     
     // Clear cart and go to success
     clearCart();
-    router.push('/checkout/success');
+    router.push(`/checkout/success?orderId=${orderId}`);
   };
 
   if (cart.length === 0) return null; // Prevent rendering empty checkout while redirecting
