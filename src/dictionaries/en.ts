@@ -60,6 +60,20 @@ export const en = {
     customerReviews: 'Customer Reviews',
     shopNow: 'Shop Now',
     exploreProducts: 'Discover the latest Korean beauty trends',
+    shopByConcern: 'Shop by Skin Concern',
+    shopByConcernSub: 'Choose the concern you want to address to find the ideal routine and treatments',
+  },
+
+  // Skin Concerns
+  concerns: {
+    sectionTitle: 'Shop by Skin Concern',
+    sectionSubtitle: 'Choose the concern you want to address to find the ideal routine and treatments',
+    viewAll: 'View All Products',
+    filterByConcern: 'Filter by Concern:',
+    allConcerns: 'All Products',
+    productsFor: 'Products for:',
+    itemsCount: '{count} products',
+    targetsConcern: 'Targets:',
   },
 
   // Product Details

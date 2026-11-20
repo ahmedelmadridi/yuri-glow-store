@@ -9,6 +9,7 @@ import ProductCard from '@/components/ProductCard';
 import ReviewForm from '@/components/ReviewForm';
 import WishlistButton from '@/components/WishlistButton';
 import ProductGallery from '@/components/ProductGallery';
+import { getConcernsForProduct } from '@/data/concerns';
 import styles from './page.module.css';
 
 interface ProductDetailsClientProps {
@@ -52,6 +53,32 @@ export default function ProductDetailsClient({
             <div>
               <div className={styles.category}>{product.category}</div>
               <h1 className={styles.title}>{product.name}</h1>
+              {getConcernsForProduct(product.id, locale).length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', margin: '6px 0 12px 0' }}>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--color-text-light)', fontWeight: 500 }}>
+                    {t('concerns.targetsConcern')}
+                  </span>
+                  {getConcernsForProduct(product.id, locale).map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/products?concern=${c.id}`}
+                      style={{
+                        fontSize: '0.78rem',
+                        padding: '3px 10px',
+                        borderRadius: '999px',
+                        backgroundColor: 'rgba(168, 143, 72, 0.08)',
+                        color: 'var(--color-primary-dark)',
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        border: '1px solid rgba(168, 143, 72, 0.25)',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {c.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
             <WishlistButton productId={product.id} style={{ position: 'static' }} />
           </div>

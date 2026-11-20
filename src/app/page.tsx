@@ -11,6 +11,7 @@ import SearchBar from '@/components/SearchBar';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import HeroSlider from '@/components/HeroSlider';
 import TestimonialSlider from '@/components/TestimonialSlider';
+import ShopByConcern from '@/components/ShopByConcern';
 
 import LocalizedText from '@/components/LocalizedText';
 
@@ -79,11 +80,16 @@ export default async function Home() {
         <HeroSlider images={bannerImages} />
       </section>
 
-      <section className={styles.section}>
+      <div className="container" style={{ marginTop: 'var(--spacing-md)' }}>
+        <Suspense fallback={null}>
+          <SearchBar />
+        </Suspense>
+      </div>
+
+      <ShopByConcern />
+
+      <section className={styles.section} style={{ paddingTop: 0 }}>
         <div className="container">
-          <Suspense fallback={null}>
-            <SearchBar />
-          </Suspense>
           <h2 className={styles.sectionTitle}>
             <LocalizedText path="home.bestSellers" fallback="الأكثر مبيعاً" />
           </h2>

@@ -60,6 +60,20 @@ export const ar = {
     customerReviews: 'آراء عملائنا',
     shopNow: 'تسوقي الآن',
     exploreProducts: 'استكشفي أحدث صيحات الجمال الكوري',
+    shopByConcern: 'تسوقي حسب احتياج بشرتك',
+    shopByConcernSub: 'اختاري المشكلة التي تواجهينها لاكتشاف الحلول والروتين الأنسب لبشرتك',
+  },
+
+  // Skin Concerns
+  concerns: {
+    sectionTitle: 'تسوقي حسب احتياج بشرتك',
+    sectionSubtitle: 'اختاري المشكلة التي تواجهينها لاكتشاف الحلول والروتين الأنسب لبشرتك',
+    viewAll: 'عرض جميع المنتجات',
+    filterByConcern: 'تصنيف حسب المشكلة:',
+    allConcerns: 'جميع المنتجات',
+    productsFor: 'منتجات مخصصة لعلاج:',
+    itemsCount: '{count} منتج',
+    targetsConcern: 'يستهدف هذا المنتج:',
   },
 
   // Product Details

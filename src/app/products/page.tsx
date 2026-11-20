@@ -23,6 +23,7 @@ export default async function ProductsPage({
 }) {
   const resolvedParams = await searchParams;
   const query = typeof resolvedParams.q === 'string' ? resolvedParams.q : undefined;
+  const concern = typeof resolvedParams.concern === 'string' ? resolvedParams.concern : undefined;
   const products = await getProducts(query);
   
   // Fetch ratings
@@ -73,7 +74,12 @@ export default async function ProductsPage({
           <LocalizedText path="search.noResults" fallback="لا توجد منتجات مطابقة لبحثك." />
         </div>
       ) : (
-        <SortableProductGrid products={products} productRatings={productRatings} productSales={productSales} />
+        <SortableProductGrid
+          products={products}
+          productRatings={productRatings}
+          productSales={productSales}
+          initialConcern={concern}
+        />
       )}
     </div>
   );
