@@ -1,4 +1,4 @@
-﻿-- ========================================================
+-- ========================================================
 -- إحصائيات المتجر: تتبع المفضلة والكلمات الأكثر بحثاً
 -- قم بتشغيل هذا الكود في Supabase SQL Editor لإنشاء الجداول
 -- ========================================================
@@ -31,3 +31,20 @@ CREATE INDEX IF NOT EXISTS idx_search_logs_query ON public.search_logs(query);
 
 -- تفعيل أمان مستوى الصف (RLS)
 ALTER TABLE public.search_logs ENABLE ROW LEVEL SECURITY;
+
+-- 3. جدول تسجيل أحداث السلة (Cart Events)
+CREATE TABLE IF NOT EXISTS public.cart_events (
+  id BIGSERIAL PRIMARY KEY,
+  product_id BIGINT REFERENCES public.products(id) ON DELETE CASCADE,
+  action TEXT NOT NULL DEFAULT 'add', -- 'add' أو 'remove'
+  quantity INT DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- فهارس لتحسين سرعة الاستعلامات حسب التاريخ والمنتج
+CREATE INDEX IF NOT EXISTS idx_cart_events_created_at ON public.cart_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_cart_events_product_id ON public.cart_events(product_id);
+
+-- تفعيل أمان مستوى الصف (RLS)
+ALTER TABLE public.cart_events ENABLE ROW LEVEL SECURITY;
+

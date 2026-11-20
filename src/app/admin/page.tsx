@@ -86,6 +86,17 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
   const metricsRows = allMetricsData || [];
 
+  // Fetch Cart Events (for the selected period or all-time)
+  let cartEventsQuery = supabaseAdmin
+    .from('cart_events')
+    .select('id, product_id, action, quantity, created_at');
+
+  if (startDate) {
+    cartEventsQuery = cartEventsQuery.gte('created_at', startDate);
+  }
+
+  const { data: cartEventsData, error: cartEventsError } = await cartEventsQuery;
+
   // Fetch Wishlist Events (for the selected period or all-time)
   let wishlistQuery = supabaseAdmin
     .from('wishlist_events')
@@ -275,6 +286,33 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     };
   });
 
+  // Cart Analytics Processing
+  const cartCounts: Record<number, { productId: number; name: string; image: string; adds: number; totalQuantity: number; stock: number }> = {};
+  (cartEventsData || []).forEach((event: any) => {
+    if (event.action === 'add') {
+      const pId = Number(event.product_id);
+      const productInfo = productMap[pId] || { name: `منتج #${pId}`, image: '', stock: 0 };
+      if (!cartCounts[pId]) {
+        cartCounts[pId] = {
+          productId: pId,
+          name: productInfo.name,
+          image: productInfo.image,
+          adds: 0,
+          totalQuantity: 0,
+          stock: productInfo.stock_quantity,
+        };
+      }
+      cartCounts[pId].adds += 1;
+      cartCounts[pId].totalQuantity += (event.quantity || 1);
+    }
+  });
+
+  const topCart = Object.values(cartCounts)
+    .sort((a, b) => b.adds - a.adds);
+
+  const totalCartAdds = (cartEventsData || []).filter((e: any) => e.action === 'add').length;
+
+  // Wishlist Analytics Processing
   const wishlistCounts: Record<number, { productId: number; name: string; image: string; adds: number; stock: number }> = {};
   (wishlistData || []).forEach((event: any) => {
     if (event.action === 'add') {
@@ -557,9 +595,100 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
       </div>
 
-      {/* Search & Wishlist Analytics Section */}
+      {/* Cart, Wishlist & Search Analytics Section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-xl)', marginTop: 'var(--spacing-xl)' }}>
         
+        {/* Most Added to Cart Products */}
+        <div style={{ backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>المنتجات الأكثر إضافة للسلة 🛒</h2>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+              {period === 'all' ? 'كل الأوقات' : period === 'today' ? 'اليوم' : period === '7d' ? 'آخر 7 أيام' : period === '30d' ? 'آخر 30 يوم' : 'آخر سنة'}
+            </span>
+          </div>
+
+          {cartEventsError ? (
+            <div style={{ padding: '16px', backgroundColor: '#fff8e1', borderRadius: '8px', border: '1px solid #ffe082', color: '#856404', fontSize: '0.9rem', lineHeight: '1.5' }}>
+              ⚠️ لتفعيل تتبع السلة، يرجى تشغيل كود SQL من ملف <code>analytics.sql</code> في Supabase SQL Editor.
+            </div>
+          ) : topCart.length > 0 ? (
+            <div>
+              <div style={{ marginBottom: '12px', fontSize: '0.85rem', color: 'var(--color-text-light)' }}>
+                إجمالي الإضافات للسلة: <strong style={{ color: 'var(--color-primary-dark)' }}>{totalCartAdds}</strong>
+              </div>
+              <ExpandableContainer
+                totalCount={topCart.length}
+                initialChildren={
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {topCart.slice(0, 5).map((item, idx) => (
+                      <li key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== Math.min(topCart.length, 5) - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          {item.image && (
+                            <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                          )}
+                          <div>
+                            <Link href={`/admin/products/${item.productId}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                              {item.name}
+                            </Link>
+                            <div style={{ fontSize: '0.75rem', color: item.stock === 0 ? '#c62828' : 'var(--color-text-light)' }}>
+                              {item.stock === 0 ? 'نفذت الكمية' : `المتبقي في المخزون: ${item.stock}`}
+                            </div>
+                          </div>
+                        </div>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '20px', 
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          backgroundColor: '#fff3e0',
+                          color: '#e65100'
+                        }}>
+                          {item.adds} إضافة 🛒
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                }
+                expandedChildren={
+                  topCart.length > 5 ? (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderTop: '1px solid var(--color-border)' }}>
+                      {topCart.slice(5).map((item, idx) => (
+                        <li key={item.productId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: idx !== topCart.length - 6 ? '1px solid var(--color-border)' : 'none' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {item.image && (
+                              <img src={item.image} alt={item.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                            )}
+                            <div>
+                              <Link href={`/admin/products/${item.productId}/edit`} style={{ fontWeight: '500', color: 'var(--color-text)', textDecoration: 'none' }}>
+                                {item.name}
+                              </Link>
+                              <div style={{ fontSize: '0.75rem', color: item.stock === 0 ? '#c62828' : 'var(--color-text-light)' }}>
+                                {item.stock === 0 ? 'نفذت الكمية' : `المتبقي في المخزون: ${item.stock}`}
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{ 
+                            padding: '4px 12px', 
+                            borderRadius: '20px', 
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            backgroundColor: '#fff3e0',
+                            color: '#e65100'
+                          }}>
+                            {item.adds} إضافة 🛒
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : undefined
+                }
+              />
+            </div>
+          ) : (
+            <p style={{ color: 'var(--color-text-light)' }}>لا توجد إضافات للسلة في هذه الفترة بعد.</p>
+          )}
+        </div>
+
         {/* Most Wishlisted Products */}
         <div style={{ backgroundColor: 'white', padding: 'var(--spacing-xl)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>

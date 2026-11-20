@@ -202,6 +202,27 @@ export async function trackWishlistEvent(productId: number, action: 'add' | 'rem
   }
 }
 
+export async function trackCartEvent(productId: number, action: 'add' | 'remove' = 'add', quantity: number = 1) {
+  try {
+    if (!productId || typeof productId !== 'number') {
+      return { error: 'Invalid product ID' };
+    }
+    const { error } = await supabaseAdmin
+      .from('cart_events')
+      .insert({ product_id: productId, action, quantity });
+
+    if (error) {
+      console.warn('Track Cart Event Warning (check if cart_events table exists):', error.message);
+      return { error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    console.error('Failed to track cart event', err);
+    return { error: 'Failed to track cart event' };
+  }
+}
+
+
 export async function trackSearchQuery(query: string) {
   try {
     const cleanQuery = query?.trim();

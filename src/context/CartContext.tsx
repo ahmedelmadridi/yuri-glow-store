@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
-import { trackMetric } from '@/app/actions/track';
+import { trackMetric, trackCartEvent } from '@/app/actions/track';
 
 export type Product = {
   id: number;
@@ -57,8 +57,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart, isLoaded]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
-    // Track Add To Cart in database
+    // Track Add To Cart in database (metric counter + per-product event)
     trackMetric(2).catch(console.error);
+    trackCartEvent(product.id, 'add', quantity).catch(console.error);
 
     // Send GA event for add to cart
     sendGAEvent('event', 'add_to_cart', {
@@ -119,6 +120,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromCart = (productId: number) => {
+    // Track remove from cart event in database
+    trackCartEvent(productId, 'remove').catch(console.error);
+
     setCart(prevCart => {
       const itemToRemove = prevCart.find(item => item.product.id === productId);
       if (itemToRemove) {
