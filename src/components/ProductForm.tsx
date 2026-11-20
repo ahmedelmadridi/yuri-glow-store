@@ -7,6 +7,7 @@ import { revalidateStore } from '@/app/actions/revalidate';
 import { upsertProduct } from '@/app/actions/product';
 import { translateProductFields } from '@/app/actions/translate';
 import { Product } from '@/data/products';
+import { compressImage } from '@/utils/imageCompression';
 
 interface ProductFormProps {
   initialData?: Product;
@@ -111,13 +112,22 @@ export default function ProductForm({ initialData }: ProductFormProps) {
 
       // 1. Upload Main Image to Supabase Storage if a new one is selected
       if (imageFile && imageFile.size > 0) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const compressedMain = await compressImage(imageFile, {
+          maxWidth: 1200,
+          maxHeight: 1200,
+          quality: 0.82,
+          targetFormat: 'image/webp',
+        });
+
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.webp`;
         const filePath = `public/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('product-images')
-          .upload(filePath, imageFile);
+          .upload(filePath, compressedMain.file, {
+            contentType: 'image/webp',
+            upsert: false,
+          });
 
         if (uploadError) {
           throw new Error('حدث خطأ أثناء رفع الصورة الأساسية: ' + uploadError.message);
@@ -136,13 +146,22 @@ export default function ProductForm({ initialData }: ProductFormProps) {
         const newGalleryUrls: string[] = [];
         
         for (const file of validGalleryFiles) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `gallery_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+          const compressedGallery = await compressImage(file, {
+            maxWidth: 1200,
+            maxHeight: 1200,
+            quality: 0.82,
+            targetFormat: 'image/webp',
+          });
+
+          const fileName = `gallery_${Math.random().toString(36).substring(2, 15)}_${Date.now()}.webp`;
           const filePath = `public/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from('product-images')
-            .upload(filePath, file);
+            .upload(filePath, compressedGallery.file, {
+              contentType: 'image/webp',
+              upsert: false,
+            });
 
           if (uploadError) {
             throw new Error('حدث خطأ أثناء رفع صور المعرض: ' + uploadError.message);
