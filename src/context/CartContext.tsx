@@ -7,13 +7,16 @@ import { trackMetric, trackCartEvent } from '@/app/actions/track';
 export type Product = {
   id: number;
   name: string;
+  name_en?: string | null;
   category: string;
+  category_en?: string | null;
   price: number;
   original_price?: number | null;
   cost_price?: number;
   stock_quantity?: number;
   image: string;
 };
+
 
 export type CartItem = {
   product: Product;

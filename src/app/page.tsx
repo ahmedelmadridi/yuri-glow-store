@@ -12,6 +12,8 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import HeroSlider from '@/components/HeroSlider';
 import TestimonialSlider from '@/components/TestimonialSlider';
 
+import LocalizedText from '@/components/LocalizedText';
+
 export const metadata: Metadata = {
   alternates: {
     canonical: '/',
@@ -82,7 +84,9 @@ export default async function Home() {
           <Suspense fallback={null}>
             <SearchBar />
           </Suspense>
-          <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
+          <h2 className={styles.sectionTitle}>
+            <LocalizedText path="home.bestSellers" fallback="الأكثر مبيعاً" />
+          </h2>
           <div className={styles.productGrid}>
           {featuredProducts.slice(0, 6).map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -94,7 +98,9 @@ export default async function Home() {
       {testimonials && testimonials.length > 0 && (
         <section className={styles.section} style={{ backgroundColor: '#fcfbf4' }}>
           <div className="container" style={{ position: 'relative' }}>
-            <h2 className={styles.sectionTitle}>آراء عملائنا</h2>
+            <h2 className={styles.sectionTitle}>
+              <LocalizedText path="home.customerReviews" fallback="آراء عملائنا" />
+            </h2>
             <TestimonialSlider testimonials={testimonials} />
           </div>
         </section>

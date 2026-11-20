@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { addReview } from '@/app/actions/reviews';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ReviewFormProps {
   productId: number;
 }
 
 export default function ReviewForm({ productId }: ReviewFormProps) {
+  const { t } = useLanguage();
   const [rating, setRating] = useState<number>(5);
   const [name, setName] = useState('');
   const [comment, setComment] = useState('');
@@ -33,17 +35,17 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
   if (status === 'success') {
     return (
       <div style={{ backgroundColor: '#e8f8f5', color: '#27ae60', padding: 'var(--spacing-md)', borderRadius: 'var(--border-radius-md)', textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-        شكراً لك! تمت إضافة تقييمك بنجاح. سيتم نشره بعد مراجعته من الإدارة.
+        {t('reviewForm.successMsg')}
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: 'var(--spacing-lg)', backgroundColor: '#f9f9f9', padding: 'var(--spacing-lg)', borderRadius: 'var(--border-radius-lg)', border: '1px solid var(--color-border)' }}>
-      <h3 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-primary-dark)' }}>أضف تقييمك للمنتج</h3>
+      <h3 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-primary-dark)' }}>{t('reviewForm.title')}</h3>
       
       <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>التقييم:</label>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>{t('reviewForm.rating')}</label>
         <div style={{ display: 'flex', gap: '8px', fontSize: '1.5rem', cursor: 'pointer' }}>
           {[1, 2, 3, 4, 5].map((star) => (
             <span 
@@ -58,26 +60,26 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
       </div>
 
       <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>الاسم:</label>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>{t('reviewForm.name')}</label>
         <input 
           type="text" 
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
           style={{ width: '100%', padding: '12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
-          placeholder="اكتب اسمك..."
+          placeholder={t('reviewForm.namePlaceholder')}
         />
       </div>
 
       <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>رأيك في المنتج:</label>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>{t('reviewForm.comment')}</label>
         <textarea 
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           required
           rows={3}
           style={{ width: '100%', padding: '12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit', resize: 'vertical' }}
-          placeholder="أخبرنا عن تجربتك..."
+          placeholder={t('reviewForm.commentPlaceholder')}
         />
       </div>
 
@@ -96,11 +98,11 @@ export default function ReviewForm({ productId }: ReviewFormProps) {
           opacity: status === 'loading' ? 0.7 : 1
         }}
       >
-        {status === 'loading' ? 'جاري الإرسال...' : 'إرسال التقييم'}
+        {status === 'loading' ? t('reviewForm.submitting') : t('reviewForm.submitBtn')}
       </button>
 
       {status === 'error' && (
-        <div style={{ color: '#e74c3c', marginTop: '12px', textAlign: 'center' }}>حدث خطأ، يرجى المحاولة مرة أخرى.</div>
+        <div style={{ color: '#e74c3c', marginTop: '12px', textAlign: 'center' }}>{t('common.error')}</div>
       )}
     </form>
   );

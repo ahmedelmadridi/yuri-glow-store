@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import styles from '../page.module.css'; // Reusing some styles
+import styles from '../page.module.css';
 
 import { getProducts } from '@/data/products';
 import SearchBar from '@/components/SearchBar';
 import SortableProductGrid from '@/components/SortableProductGrid';
+import LocalizedText from '@/components/LocalizedText';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { Metadata } from 'next';
 
@@ -58,16 +59,18 @@ export default async function ProductsPage({
 
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)' }}>
-      <h1 className={styles.sectionTitle}>منتجاتنا</h1>
+      <h1 className={styles.sectionTitle}>
+        <LocalizedText path="nav.products" fallback="منتجاتنا" />
+      </h1>
       <p style={{ textAlign: 'center', marginBottom: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
-        تصفحي مجموعتنا الكاملة من منتجات العناية بالبشرة الكورية الأصيلة
+        <LocalizedText path="home.exploreProducts" fallback="تصفحي مجموعتنا الكاملة من منتجات العناية بالبشرة الكورية الأصيلة" />
       </p>
 
       <SearchBar />
 
       {products.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl) 0', color: 'var(--color-text-light)' }}>
-          لا توجد منتجات مطابقة لبحثك.
+          <LocalizedText path="search.noResults" fallback="لا توجد منتجات مطابقة لبحثك." />
         </div>
       ) : (
         <SortableProductGrid products={products} productRatings={productRatings} productSales={productSales} />

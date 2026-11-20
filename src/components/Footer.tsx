@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Footer() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   if (pathname.startsWith('/admin')) {
     return null;
@@ -15,16 +17,16 @@ export default function Footer() {
       <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
         
         <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', color: 'white' }}>
-          <strong>روابط هامة:</strong>
-          <Link href="/products" style={{ color: 'white', textDecoration: 'none' }}>المنتجات</Link>
+          <strong>{t('common.quickLinks')}</strong>
+          <Link href="/products" style={{ color: 'white', textDecoration: 'none' }}>{t('nav.products')}</Link>
           <span style={{ color: '#aaa' }}>|</span>
-          <Link href="/about" style={{ color: 'white', textDecoration: 'none' }}>من نحن</Link>
+          <Link href="/about" style={{ color: 'white', textDecoration: 'none' }}>{t('nav.about')}</Link>
           <span style={{ color: '#aaa' }}>|</span>
-          <Link href="/contact" style={{ color: 'white', textDecoration: 'none' }}>اتصل بنا</Link>
+          <Link href="/contact" style={{ color: 'white', textDecoration: 'none' }}>{t('nav.contact')}</Link>
           <span style={{ color: '#aaa' }}>|</span>
-          <Link href="/return-policy" style={{ color: 'white', textDecoration: 'none' }}>سياسة الاسترجاع</Link>
+          <Link href="/return-policy" style={{ color: 'white', textDecoration: 'none' }}>{t('common.returnPolicy')}</Link>
           <span style={{ color: '#aaa' }}>|</span>
-          <Link href="/privacy-policy" style={{ color: 'white', textDecoration: 'none' }}>سياسة الخصوصية</Link>
+          <Link href="/privacy-policy" style={{ color: 'white', textDecoration: 'none' }}>{t('common.privacyPolicy')}</Link>
         </div>
 
         {/* Social Media Links */}
@@ -42,8 +44,8 @@ export default function Footer() {
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <img src="/logo.png" alt="Yuri Glow" style={{ maxHeight: '60px', width: 'auto', marginBottom: 'var(--spacing-sm)' }} />
-          <p>&copy; {new Date().getFullYear()} جميع الحقوق محفوظة.</p>
-          <p style={{ marginTop: 'var(--spacing-xs)', fontWeight: 'bold' }}>🚗 التوصيل متاح داخل جمهورية مصر العربية فقط</p>
+          <p>&copy; {new Date().getFullYear()} {t('common.allRightsReserved')}</p>
+          <p style={{ marginTop: 'var(--spacing-xs)', fontWeight: 'bold' }}>{t('common.deliveryNotice')}</p>
         </div>
         
       </div>

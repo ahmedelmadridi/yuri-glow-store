@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart, Product } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useState } from 'react';
 import { trackEvent } from '@/utils/fpixel';
 import { trackTikTokEvent } from '@/utils/ttpixel';
@@ -8,6 +9,7 @@ import styles from './AddToCartButton.module.css';
 
 export default function AddToCartButton({ product }: { product: Product }) {
   const { addToCart } = useCart();
+  const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -50,7 +52,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
           style={{ backgroundColor: '#95a5a6', cursor: 'not-allowed', width: '100%' }}
           disabled
         >
-          نفذت الكمية 😔
+          {t('common.outOfStock')} 😔
         </button>
       </div>
     );
@@ -62,6 +64,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
         <button 
           onClick={() => setQuantity(Math.max(1, quantity - 1))}
           className={styles.qtyBtn}
+          aria-label="Decrease quantity"
         >-</button>
         <span className={styles.qtyValue}>{quantity}</span>
         <button 
@@ -72,13 +75,14 @@ export default function AddToCartButton({ product }: { product: Product }) {
           className={styles.qtyBtn}
           disabled={product.stock_quantity !== undefined && product.stock_quantity !== null && quantity >= product.stock_quantity}
           style={{ opacity: (product.stock_quantity !== undefined && product.stock_quantity !== null && quantity >= product.stock_quantity) ? 0.5 : 1 }}
+          aria-label="Increase quantity"
         >+</button>
       </div>
       <button 
         className={`btn-primary ${styles.addButton} ${added ? styles.added : ''}`}
         onClick={handleAdd}
       >
-        {added ? 'تمت الإضافة بنجاح ✓' : 'إضافة إلى السلة'}
+        {added ? t('product.addedToCart') : t('product.addToCart')}
       </button>
     </div>
   );

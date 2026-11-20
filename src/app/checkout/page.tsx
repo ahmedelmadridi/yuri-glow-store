@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
-import { governorates } from '@/data/governorates';
+import { useLanguage } from '@/context/LanguageContext';
+import { governorates, governorateMap } from '@/data/governorates';
+import { getLocalizedProduct } from '@/data/products';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -21,7 +23,7 @@ import {
 } from '@/data/storeSettingsDefaults';
 import styles from './page.module.css';
 
-function CopyButton({ text, color }: { text: string, color: string }) {
+function CopyButton({ text, color, copyLabel, copiedLabel }: { text: string, color: string, copyLabel: string, copiedLabel: string }) {
   const [copied, setCopied] = useState(false);
   
   const handleCopy = () => {
@@ -40,22 +42,23 @@ function CopyButton({ text, color }: { text: string, color: string }) {
         borderRadius: '4px', 
         padding: '2px 6px', 
         fontSize: '0.75rem', 
-        marginRight: '8px', 
+        marginInlineStart: '8px', 
         cursor: 'pointer', 
         color: color,
         display: 'inline-flex',
         alignItems: 'center',
         gap: '4px'
       }}
-      title="نسخ"
+      title={copyLabel}
     >
-      {copied ? '✅ تم' : '📋 نسخ'}
+      {copied ? `✅ ${copiedLabel}` : `📋 ${copyLabel}`}
     </button>
   );
 }
 
 export default function CheckoutPage() {
   const { cart, totalPrice, clearCart } = useCart();
+  const { t, locale, isRTL } = useLanguage();
   const router = useRouter();
   
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(defaultShippingSettings);
@@ -140,42 +143,42 @@ export default function CheckoutPage() {
 
         // Fire GA event for begin checkout
         sendGAEvent('event', 'begin_checkout', {
-        currency: 'EGP',
-        value: totalPrice,
-        items: cart.map(item => ({
-          item_id: item.product.id,
-          item_name: item.product.name,
-          price: item.product.price,
-          quantity: item.quantity
-        }))
-      });
-
-      // Fire Meta Pixel event for begin checkout
-      import('@/utils/fpixel').then(({ trackEvent }) => {
-        trackEvent('InitiateCheckout', {
-          content_ids: cart.map(item => item.product.id),
-          content_type: 'product',
-          value: totalPrice,
           currency: 'EGP',
-        });
-      });
-
-      // Fire TikTok Pixel event for begin checkout
-      import('@/utils/ttpixel').then(({ trackTikTokEvent }) => {
-        trackTikTokEvent('InitiateCheckout', {
-          contents: cart.map(item => ({
-            content_id: String(item.product.id),
-            content_name: item.product.name,
-            quantity: item.quantity,
+          value: totalPrice,
+          items: cart.map(item => ({
+            item_id: item.product.id,
+            item_name: item.product.name,
             price: item.product.price,
-          })),
-          content_type: 'product',
-          value: totalPrice,
-          currency: 'EGP',
+            quantity: item.quantity
+          }))
         });
-      });
-      } // close if (!hasTrackedRef.current)
-    } // close else if
+
+        // Fire Meta Pixel event for begin checkout
+        import('@/utils/fpixel').then(({ trackEvent }) => {
+          trackEvent('InitiateCheckout', {
+            content_ids: cart.map(item => item.product.id),
+            content_type: 'product',
+            value: totalPrice,
+            currency: 'EGP',
+          });
+        });
+
+        // Fire TikTok Pixel event for begin checkout
+        import('@/utils/ttpixel').then(({ trackTikTokEvent }) => {
+          trackTikTokEvent('InitiateCheckout', {
+            contents: cart.map(item => ({
+              content_id: String(item.product.id),
+              content_name: item.product.name,
+              quantity: item.quantity,
+              price: item.product.price,
+            })),
+            content_type: 'product',
+            value: totalPrice,
+            currency: 'EGP',
+          });
+        });
+      }
+    }
   }, [cart, isSubmitted, router, totalPrice]);
 
   const activeGovs = shippingSettings.governorates.filter(g => g.is_active !== false);
@@ -244,18 +247,18 @@ export default function CheckoutPage() {
     // Validate phone number
     const digitsOnly = formData.phone.replace(/\D/g, '');
     if (digitsOnly.length < 11) {
-      setErrorMsg('رقم الهاتف يجب أن يتكون من 11 رقماً على الأقل.');
+      setErrorMsg(locale === 'en' ? 'Phone number must be at least 11 digits.' : 'رقم الهاتف يجب أن يتكون من 11 رقماً على الأقل.');
       return;
     }
 
     // Validate electronic wallet payment
     if (formData.paymentMethod === 'wallet') {
       if (!formData.walletReference.trim()) {
-        setErrorMsg('يرجى كتابة رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع.');
+        setErrorMsg(locale === 'en' ? 'Please provide the sender phone number or transaction ID.' : 'يرجى كتابة رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع.');
         return;
       }
       if (paymentSettings.require_receipt_upload && !paymentReceipt) {
-        setErrorMsg('يرجى إرفاق سكرين شوت التحويل لتأكيد الطلب.');
+        setErrorMsg(locale === 'en' ? 'Please attach the transfer screenshot to confirm your order.' : 'يرجى إرفاق سكرين شوت التحويل لتأكيد الطلب.');
         return;
       }
     }
@@ -263,18 +266,18 @@ export default function CheckoutPage() {
     // Validate COD advance deposit
     if (formData.paymentMethod === 'cod' && depositAmount > 0) {
       if (!formData.walletReference.trim()) {
-        setErrorMsg('يرجى كتابة رقم الهاتف المحول منه لتأكيد دفع العربون.');
+        setErrorMsg(locale === 'en' ? 'Please provide the sender phone number to confirm deposit payment.' : 'يرجى كتابة رقم الهاتف المحول منه لتأكيد دفع العربون.');
         return;
       }
       if (paymentSettings.require_receipt_upload && !paymentReceipt) {
-        setErrorMsg('يرجى إرفاق سكرين شوت تحويل العربون لتأكيد الطلب.');
+        setErrorMsg(locale === 'en' ? 'Please attach the deposit transfer screenshot to confirm your order.' : 'يرجى إرفاق سكرين شوت تحويل العربون لتأكيد الطلب.');
         return;
       }
     }
 
     // Validate receipt file size (max 10MB)
     if (paymentReceipt && paymentReceipt.size > 10 * 1024 * 1024) {
-      setErrorMsg('حجم الصورة المرفقة كبير جداً (أكبر من 10 ميجابايت). يرجى اختيار صورة أصغر أو ضغطها.');
+      setErrorMsg(locale === 'en' ? 'The attached image is too large (over 10MB). Please choose a smaller image.' : 'حجم الصورة المرفقة كبير جداً (أكبر من 10 ميجابايت). يرجى اختيار صورة أصغر أو ضغطها.');
       return;
     }
     
@@ -284,7 +287,7 @@ export default function CheckoutPage() {
     // Check IP Rate Limit against spam bots
     const rateLimitResult = await checkRateLimit();
     if (!rateLimitResult.success) {
-      setErrorMsg(rateLimitResult.message || 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.');
+      setErrorMsg(rateLimitResult.message || (locale === 'en' ? 'An unexpected error occurred. Please try again later.' : 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.'));
       setIsSubmitting(false);
       return;
     }
@@ -314,7 +317,7 @@ export default function CheckoutPage() {
 
     if (orderError) {
       console.error('Order Error Details:', orderError.message, orderError.details, orderError.hint, orderError.code);
-      setErrorMsg(`حدث خطأ أثناء تسجيل الطلب: ${orderError.message}`);
+      setErrorMsg(locale === 'en' ? `An error occurred while placing the order: ${orderError.message}` : `حدث خطأ أثناء تسجيل الطلب: ${orderError.message}`);
       setIsSubmitting(false);
       return;
     }
@@ -352,7 +355,7 @@ export default function CheckoutPage() {
 
 👤 <b>الاسم:</b> ${formData.name}
 📱 <b>الهاتف:</b> ${formData.phone}
-📍 <b>المحافظة:</b> ${selectedGov}
+📍 <b>المحافظة:</b> ${selectedGov} (${governorateMap[selectedGov] || selectedGov})
 🏠 <b>العنوان:</b> ${formData.address}
 📝 <b>ملاحظات:</b> ${formData.notes || 'لا يوجد'}
 💳 <b>طريقة الدفع:</b> ${paymentText}
@@ -361,7 +364,7 @@ export default function CheckoutPage() {
 🛍️ <b>المنتجات:</b>
 ${orderItemsText}
 
-💰 <b>الإجمالي:</b> ${formatPrice(finalTotal)} (بما في ذلك الشحن)
+💰 <b>الإجمالي:</b> ${formatPrice(finalTotal, 'ar')} (بما في ذلك الشحن)
       `;
       
       const tgFormData = new FormData();
@@ -423,71 +426,90 @@ ${orderItemsText}
     router.push(`/checkout/success?orderId=${orderId}`);
   };
 
-  if (cart.length === 0) return null; // Prevent rendering empty checkout while redirecting
+  if (cart.length === 0) return null;
 
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)' }}>
-      <h1 className={styles.pageTitle}>إتمام الطلب</h1>
+      <h1 className={styles.pageTitle}>{t('checkout.title')}</h1>
       
       <form onSubmit={handleSubmit} className={styles.checkoutLayout}>
         <div className={styles.formSection}>
-          <h2 style={{ marginBottom: 'var(--spacing-md)' }}>بيانات الشحن</h2>
+          <h2 style={{ marginBottom: 'var(--spacing-md)' }}>{t('checkout.shippingData')}</h2>
           
           <div className={styles.formGroup}>
-            <label htmlFor="name">الاسم الكامل *</label>
+            <label htmlFor="name">{t('checkout.fullName')}</label>
             <input type="text" id="name" name="name" required value={formData.name} onChange={handleInputChange} />
           </div>
           
           <div className={styles.formGroup}>
-            <label htmlFor="phone">رقم الهاتف *</label>
-            <input type="tel" id="phone" name="phone" required minLength={11} title="يجب أن يتكون رقم الهاتف من 11 رقماً على الأقل" value={formData.phone} onChange={handleInputChange} dir="ltr" style={{ textAlign: 'right' }} />
+            <label htmlFor="phone">{t('checkout.phone')}</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              required 
+              minLength={11} 
+              title={t('checkout.phoneNotice')} 
+              value={formData.phone} 
+              onChange={handleInputChange} 
+              dir="ltr" 
+              style={{ textAlign: isRTL ? 'right' : 'left' }} 
+            />
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="governorate">المحافظة *</label>
+            <label htmlFor="governorate">{t('checkout.governorate')}</label>
             <select id="governorate" name="governorate" value={selectedGov} onChange={handleGovChange} required>
-              {activeGovs.map(gov => (
-                <option key={gov.name} value={gov.name}>
-                  {gov.name} (شحن: {gov.shippingCost} ج.م)
-                </option>
-              ))}
+              {activeGovs.map(gov => {
+                const govDisplayName = locale === 'en' ? (governorateMap[gov.name] || gov.name) : gov.name;
+                return (
+                  <option key={gov.name} value={gov.name}>
+                    {govDisplayName} ({t('checkout.shippingLabel')} {formatPrice(gov.shippingCost, locale)})
+                  </option>
+                );
+              })}
             </select>
           </div>
           
           <div className={styles.formGroup}>
-            <label htmlFor="address">العنوان بالتفصيل (الشارع، رقم العمارة، الشقة) *</label>
+            <label htmlFor="address">{t('checkout.address')}</label>
             <textarea id="address" name="address" required rows={3} value={formData.address} onChange={handleInputChange}></textarea>
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="notes">ملاحظات إضافية (اختياري)</label>
-            <textarea id="notes" name="notes" rows={2} value={formData.notes} onChange={handleInputChange}></textarea>
+            <label htmlFor="notes">{t('checkout.notes')}</label>
+            <textarea id="notes" name="notes" rows={2} placeholder={t('checkout.notesPlaceholder')} value={formData.notes} onChange={handleInputChange}></textarea>
           </div>
         </div>
 
         <div className={styles.summarySection}>
-          <h2 style={{ marginBottom: 'var(--spacing-md)' }}>ملخص الطلب</h2>
+          <h2 style={{ marginBottom: 'var(--spacing-md)' }}>{t('checkout.orderSummary')}</h2>
           
           <div className={styles.summaryItems}>
-            {cart.map((item, index) => (
-              <div key={index} className={styles.summaryItem}>
-                <span className={styles.summaryItemName}>{item.product.name} (x{item.quantity})</span>
-                <span>{item.product.price}</span>
-              </div>
-            ))}
+            {cart.map((item, index) => {
+              const product = getLocalizedProduct(item.product, locale);
+              return (
+                <div key={index} className={styles.summaryItem}>
+                  <span className={styles.summaryItemName}>{product.name} (x{item.quantity})</span>
+                  <span>{formatPrice(product.price, locale)}</span>
+                </div>
+              );
+            })}
           </div>
           
           <hr className={styles.divider} />
           
           <div style={{ marginBottom: 'var(--spacing-md)' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>هل لديك كود خصم؟</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+              {t('checkout.haveCoupon')}
+            </label>
             {!appliedCoupon ? (
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input 
                   type="text" 
                   value={couponCode} 
                   onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="أدخل الكود هنا"
+                  placeholder={t('checkout.enterCoupon')}
                   style={{ flex: '1', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                   dir="ltr"
                 />
@@ -506,20 +528,20 @@ ${orderItemsText}
                     opacity: (isCheckingCoupon || !couponCode.trim()) ? 0.7 : 1
                   }}
                 >
-                  {isCheckingCoupon ? '...' : 'تطبيق'}
+                  {isCheckingCoupon ? '...' : t('common.apply')}
                 </button>
               </div>
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#e8f8f5', padding: '10px', borderRadius: '4px', color: '#27ae60' }}>
                 <div>
-                  <strong>تم تفعيل الخصم!</strong> ({appliedCoupon.code})
+                  <strong>{t('checkout.couponActive')}</strong> ({appliedCoupon.code})
                 </div>
                 <button 
                   type="button" 
                   onClick={() => setAppliedCoupon(null)}
                   style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                  إلغاء
+                  {t('common.cancel')}
                 </button>
               </div>
             )}
@@ -529,25 +551,25 @@ ${orderItemsText}
           <hr className={styles.divider} />
           
           <div className={styles.summaryRow}>
-            <span>المجموع الفرعي</span>
+            <span>{t('checkout.subtotal')}</span>
             <span style={{ textDecoration: appliedCoupon ? 'line-through' : 'none', color: appliedCoupon ? '#999' : 'inherit' }}>
-              {formatPrice(totalPrice)}
+              {formatPrice(totalPrice, locale)}
             </span>
           </div>
           
           {appliedCoupon && (
             <div className={styles.summaryRow} style={{ color: '#27ae60' }}>
-              <span>بعد الخصم ({appliedCoupon.discount}%)</span>
-              <span>{formatPrice(Math.round(totalPrice - (totalPrice * (appliedCoupon.discount / 100))))}</span>
+              <span>{t('checkout.afterDiscount')} ({appliedCoupon.discount}%)</span>
+              <span>{formatPrice(Math.round(totalPrice - (totalPrice * (appliedCoupon.discount / 100))), locale)}</span>
             </div>
           )}
           <div className={styles.summaryRow}>
-            <span>الشحن ({selectedGov})</span>
+            <span>{t('checkout.shipping')} ({locale === 'en' ? (governorateMap[selectedGov] || selectedGov) : selectedGov})</span>
             <span>
               {isFreeShippingQualified ? (
-                <span style={{ color: '#27ae60', fontWeight: 'bold' }}>مجانًا! 🎁</span>
+                <span style={{ color: '#27ae60', fontWeight: 'bold' }}>{t('common.free')}</span>
               ) : (
-                formatPrice(shippingCost)
+                formatPrice(shippingCost, locale)
               )}
             </span>
           </div>
@@ -555,12 +577,12 @@ ${orderItemsText}
           <hr className={styles.divider} />
           
           <div className={`${styles.summaryRow} ${styles.totalRow}`}>
-            <span>الإجمالي المطلوب</span>
-            <span>{formatPrice(finalTotal)}</span>
+            <span>{t('checkout.totalRequired')}</span>
+            <span>{formatPrice(finalTotal, locale)}</span>
           </div>
           
           <div style={{ marginBottom: 'var(--spacing-md)', backgroundColor: '#f9f9f9', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>طريقة الدفع</h3>
+            <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>{t('checkout.paymentMethod')}</h3>
             
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
               {paymentSettings.cod_enabled && (
@@ -572,7 +594,7 @@ ${orderItemsText}
                     checked={formData.paymentMethod === 'cod'} 
                     onChange={handleInputChange} 
                   />
-                  {paymentSettings.cod_title}
+                  {locale === 'en' ? t('checkout.codTitle') : paymentSettings.cod_title}
                 </label>
               )}
               {paymentSettings.wallet_enabled && (
@@ -584,12 +606,12 @@ ${orderItemsText}
                     checked={formData.paymentMethod === 'wallet'} 
                     onChange={handleInputChange} 
                   />
-                  {paymentSettings.wallet_title}
+                  {locale === 'en' ? t('checkout.walletTitle') : paymentSettings.wallet_title}
                 </label>
               )}
               {!paymentSettings.cod_enabled && !paymentSettings.wallet_enabled && (
                 <div style={{ color: '#e74c3c', fontSize: '0.9rem' }}>
-                  لا توجد طرق دفع مفعلة حالياً. يرجى التواصل مع إدارة المتجر.
+                  {t('checkout.noPaymentMethods')}
                 </div>
               )}
             </div>
@@ -597,27 +619,37 @@ ${orderItemsText}
             {formData.paymentMethod === 'cod' && paymentSettings.cod_enabled && (
               <div style={{ padding: '12px', backgroundColor: '#fff3cd', borderRadius: '4px', border: '1px solid #ffeeba', marginBottom: '16px' }}>
                 <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#856404' }}>
-                  <strong>تنبيه:</strong> {paymentSettings.cod_notice}{' '}
+                  <strong>{t('checkout.codNoticeLabel')}</strong>{' '}
                   {depositAmount > 0 ? (
-                    <span>
-                      برجاء تحويل (<strong>{formatPrice(depositAmount)}</strong>) كعربون لتأكيد طلبك، وسيتم دفع باقي المبلغ (<strong>{formatPrice(Math.max(0, finalTotal - depositAmount))}</strong>) عند الاستلام.
-                    </span>
+                    locale === 'en' ? (
+                      <span>
+                        Please transfer (<strong>{formatPrice(depositAmount, locale)}</strong>) as an advance deposit to confirm your order, and the remaining amount (<strong>{formatPrice(Math.max(0, finalTotal - depositAmount), locale)}</strong>) will be paid upon delivery.
+                      </span>
+                    ) : (
+                      <span>
+                        برجاء تحويل (<strong>{formatPrice(depositAmount, locale)}</strong>) كعربون لتأكيد طلبك، وسيتم دفع باقي المبلغ (<strong>{formatPrice(Math.max(0, finalTotal - depositAmount), locale)}</strong>) عند الاستلام.
+                      </span>
+                    )
                   ) : (
-                    <span>سيتم دفع إجمالي المبلغ (<strong>{formatPrice(finalTotal)}</strong>) نقداً عند الاستلام.</span>
+                    locale === 'en' ? (
+                      <span>The total amount (<strong>{formatPrice(finalTotal, locale)}</strong>) will be paid in cash upon delivery.</span>
+                    ) : (
+                      <span>سيتم دفع إجمالي المبلغ (<strong>{formatPrice(finalTotal, locale)}</strong>) نقداً عند الاستلام.</span>
+                    )
                   )}
                 </p>
                 {depositAmount > 0 && (
                   <>
-                    <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingRight: '20px' }}>
+                    <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#856404', paddingInlineStart: '20px' }}>
                       {paymentSettings.wallet_instapay && (
-                        <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_instapay}</strong> <CopyButton text={paymentSettings.wallet_instapay} color="#856404" /></li>
+                        <li>{t('checkout.instapay')} <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_instapay}</strong> <CopyButton text={paymentSettings.wallet_instapay} color="#856404" copyLabel={t('common.copy')} copiedLabel={t('common.copied')} /></li>
                       )}
                       {paymentSettings.wallet_vodafone_cash && (
-                        <li>المحافظ الإلكترونية: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_vodafone_cash}</strong> <CopyButton text={paymentSettings.wallet_vodafone_cash} color="#856404" /></li>
+                        <li>{t('checkout.wallets')} <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_vodafone_cash}</strong> <CopyButton text={paymentSettings.wallet_vodafone_cash} color="#856404" copyLabel={t('common.copy')} copiedLabel={t('common.copied')} /></li>
                       )}
                     </ul>
                     <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
-                      <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>رقم الهاتف المحول منه لتأكيد الدفع *</label>
+                      <label htmlFor="walletReferenceCod" style={{ fontSize: '0.9rem', color: '#856404' }}>{t('checkout.refNumberLabel')}</label>
                       <input 
                         type="text" 
                         id="walletReferenceCod" 
@@ -625,13 +657,13 @@ ${orderItemsText}
                         required={depositAmount > 0} 
                         value={formData.walletReference} 
                         onChange={handleInputChange} 
-                        placeholder="مثال: 01012345678"
+                        placeholder={t('checkout.refNumberPlaceholder')}
                         style={{ border: '1px solid #ffeeba' }}
                       />
                     </div>
                     <div className={styles.formGroup} style={{ marginBottom: 0 }}>
                       <label htmlFor="paymentReceiptCod" style={{ fontSize: '0.9rem', color: '#856404' }}>
-                        إرفاق سكرين شوت للتحويل {paymentSettings.require_receipt_upload ? '*' : '(اختياري)'}
+                        {t('checkout.uploadReceiptLabel')} {paymentSettings.require_receipt_upload ? '*' : t('checkout.uploadReceiptOptional')}
                       </label>
                       <input 
                         type="file" 
@@ -647,7 +679,7 @@ ${orderItemsText}
                       />
                       {paymentReceipt && formData.paymentMethod === 'cod' && (
                         <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#856404', fontWeight: 'bold' }}>
-                          ✅ تم إرفاق الصورة: {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
+                          {t('checkout.receiptAttached')} {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
                         </div>
                       )}
                     </div>
@@ -659,18 +691,22 @@ ${orderItemsText}
             {formData.paymentMethod === 'wallet' && paymentSettings.wallet_enabled && (
               <div style={{ padding: '12px', backgroundColor: '#e8f8f5', borderRadius: '4px', border: '1px solid #27ae60' }}>
                 <p style={{ marginBottom: '8px', fontSize: '0.9rem', color: '#1e8449' }}>
-                  <strong>{paymentSettings.wallet_instructions} (<strong>{formatPrice(finalTotal)}</strong>):</strong>
+                  <strong>
+                    {locale === 'en' 
+                      ? `Please transfer the total amount (${formatPrice(finalTotal, locale)}) to one of the following accounts:` 
+                      : `${paymentSettings.wallet_instructions} (${formatPrice(finalTotal, locale)}):`}
+                  </strong>
                 </p>
-                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingRight: '20px' }}>
+                <ul style={{ marginBottom: '12px', fontSize: '0.9rem', color: '#1e8449', paddingInlineStart: '20px' }}>
                   {paymentSettings.wallet_instapay && (
-                    <li>انستاباي: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_instapay}</strong> <CopyButton text={paymentSettings.wallet_instapay} color="#1e8449" /></li>
+                    <li>{t('checkout.instapay')} <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_instapay}</strong> <CopyButton text={paymentSettings.wallet_instapay} color="#1e8449" copyLabel={t('common.copy')} copiedLabel={t('common.copied')} /></li>
                   )}
                   {paymentSettings.wallet_vodafone_cash && (
-                    <li>المحافظ الإلكترونية: <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_vodafone_cash}</strong> <CopyButton text={paymentSettings.wallet_vodafone_cash} color="#1e8449" /></li>
+                    <li>{t('checkout.wallets')} <strong style={{ direction: 'ltr', display: 'inline-block' }}>{paymentSettings.wallet_vodafone_cash}</strong> <CopyButton text={paymentSettings.wallet_vodafone_cash} color="#1e8449" copyLabel={t('common.copy')} copiedLabel={t('common.copied')} /></li>
                   )}
                 </ul>
                 <div className={styles.formGroup} style={{ marginBottom: '12px' }}>
-                  <label htmlFor="walletReferenceWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>رقم الهاتف المحول منه أو رقم العملية لتأكيد الدفع *</label>
+                  <label htmlFor="walletReferenceWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>{t('checkout.refNumberLabel')}</label>
                   <input 
                     type="text" 
                     id="walletReferenceWallet" 
@@ -678,13 +714,13 @@ ${orderItemsText}
                     required={formData.paymentMethod === 'wallet'} 
                     value={formData.walletReference} 
                     onChange={handleInputChange} 
-                    placeholder="مثال: 01012345678"
+                    placeholder={t('checkout.refNumberPlaceholder')}
                     style={{ border: '1px solid #27ae60' }}
                   />
                 </div>
                 <div className={styles.formGroup} style={{ marginBottom: 0 }}>
                   <label htmlFor="paymentReceiptWallet" style={{ fontSize: '0.9rem', color: '#1e8449' }}>
-                    إرفاق سكرين شوت للتحويل {paymentSettings.require_receipt_upload ? '*' : '(اختياري)'}
+                    {t('checkout.uploadReceiptLabel')} {paymentSettings.require_receipt_upload ? '*' : t('checkout.uploadReceiptOptional')}
                   </label>
                   <input 
                     type="file" 
@@ -700,7 +736,7 @@ ${orderItemsText}
                   />
                   {paymentReceipt && formData.paymentMethod === 'wallet' && (
                     <div style={{ marginTop: '6px', fontSize: '0.85rem', color: '#1e8449', fontWeight: 'bold' }}>
-                      ✅ تم إرفاق الصورة: {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
+                      {t('checkout.receiptAttached')} {paymentReceipt.name} ({(paymentReceipt.size / (1024 * 1024)).toFixed(2)} MB)
                     </div>
                   )}
                 </div>
@@ -715,7 +751,7 @@ ${orderItemsText}
             className={`btn-primary ${styles.submitBtn}`} 
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'جاري تأكيد الطلب...' : 'تأكيد الطلب'}
+            {isSubmitting ? t('checkout.confirmingOrderBtn') : t('checkout.confirmOrderBtn')}
           </button>
         </div>
       </form>

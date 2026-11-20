@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ProductCard from './ProductCard';
 import { Product } from '@/data/products';
+import { useLanguage } from '@/context/LanguageContext';
 import styles from '@/app/page.module.css';
 
 interface SortableProductGridProps {
@@ -15,6 +16,7 @@ type SortOption = 'default' | 'price_asc' | 'price_desc' | 'rating' | 'best_sell
 
 export default function SortableProductGrid({ products, productRatings = {}, productSales = {} }: SortableProductGridProps) {
   const [sortOption, setSortOption] = useState<SortOption>('default');
+  const { locale } = useLanguage();
 
   const sortedProducts = [...products].sort((a, b) => {
     if (sortOption === 'price_asc') {
@@ -30,7 +32,6 @@ export default function SortableProductGrid({ products, productRatings = {}, pro
       const salesB = productSales[b.id] || 0;
       return salesB - salesA;
     }
-    // 'default' - keep original order
     return 0;
   });
 
@@ -39,7 +40,7 @@ export default function SortableProductGrid({ products, productRatings = {}, pro
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--spacing-md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <label htmlFor="sort-select" style={{ fontSize: '0.9rem', color: 'var(--color-text-light)' }}>
-            ترتيب حسب:
+            {locale === 'en' ? 'Sort by:' : 'ترتيب حسب:'}
           </label>
           <select 
             id="sort-select"
@@ -54,11 +55,11 @@ export default function SortableProductGrid({ products, productRatings = {}, pro
               cursor: 'pointer'
             }}
           >
-            <option value="default">الافتراضي</option>
-            <option value="best_seller">الأكثر مبيعاً</option>
-            <option value="price_asc">السعر: من الأقل للأعلى</option>
-            <option value="price_desc">السعر: من الأعلى للأقل</option>
-            <option value="rating">الأعلى تقييماً</option>
+            <option value="default">{locale === 'en' ? 'Default' : 'الافتراضي'}</option>
+            <option value="best_seller">{locale === 'en' ? 'Best Sellers' : 'الأكثر مبيعاً'}</option>
+            <option value="price_asc">{locale === 'en' ? 'Price: Low to High' : 'السعر: من الأقل للأعلى'}</option>
+            <option value="price_desc">{locale === 'en' ? 'Price: High to Low' : 'السعر: من الأعلى للأقل'}</option>
+            <option value="rating">{locale === 'en' ? 'Highest Rated' : 'الأعلى تقييماً'}</option>
           </select>
         </div>
       </div>

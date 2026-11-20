@@ -64,17 +64,24 @@ export const metadata: Metadata = {
 };
 
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { cookies } from 'next/headers';
+import { LanguageProvider, Locale } from '@/context/LanguageContext';
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value as Locale | undefined;
+  const locale: Locale = (cookieLocale === 'en' || cookieLocale === 'ar') ? cookieLocale : 'ar';
+  const dir = locale === 'ar' ? 'rtl' : 'ltr';
+
   const { data: settings } = await supabaseAdmin.from('store_settings').select('*');
   const colors = settings?.reduce((acc: any, s: any) => ({ ...acc, [s.key]: s.value }), {}) || {};
 
   return (
-    <html lang="ar" dir="rtl" style={{
+    <html lang={locale} dir={dir} style={{
       '--color-primary': colors.color_primary || undefined,
       '--color-primary-dark': colors.color_primary_dark || undefined,
       '--color-bg': colors.color_bg || undefined,
@@ -88,15 +95,17 @@ export default async function RootLayout({
         </Suspense>
         <ViewCounter />
         <WhatsAppButton />
-        <CartProvider>
-          <Header />
-          
-          <main>{children}</main>
-        <Footer />
-        </CartProvider>
+        <LanguageProvider initialLocale={locale}>
+          <CartProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </CartProvider>
+        </LanguageProvider>
         <Analytics />
         <GoogleAnalytics gaId="G-GHT70K89VB" />
       </body>
     </html>
   );
 }
+

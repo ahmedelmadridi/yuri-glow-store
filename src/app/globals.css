@@ -193,11 +193,33 @@ img {
   }
   .logo {
     order: 1;
+  }
+  html[dir="rtl"] .logo {
     margin-left: auto;
+    margin-right: 0;
+  }
+  html[dir="ltr"] .logo {
+    margin-right: auto;
+    margin-left: 0;
   }
   .header-actions {
     order: 2;
   }
 }
+
+html[dir="ltr"],
+html[lang="en"] {
+  --font-heading: var(--font-playfair), 'Playfair Display', serif;
+  --font-body: var(--font-inter), 'Inter', sans-serif;
+  direction: ltr;
+}
+
+html[dir="rtl"],
+html[lang="ar"] {
+  --font-heading: var(--font-cairo), 'Playfair Display', serif;
+  --font-body: var(--font-cairo), 'Inter', sans-serif;
+  direction: rtl;
+}
+
 
 

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from 'next/link';
-import { Product } from '@/data/products';
+import { Product, getLocalizedProduct } from '@/data/products';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { formatPrice } from '@/utils/format';
 import styles from './ProductCard.module.css';
 import WishlistButton from './WishlistButton';
@@ -12,8 +13,10 @@ interface ProductCardProps {
   product: Product;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product: rawProduct }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { t, locale } = useLanguage();
+  const product = getLocalizedProduct(rawProduct, locale);
 
   // Calculate discount percentage automatically
   let calculatedDiscount = product.discount_percentage;
@@ -26,24 +29,23 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigating to the link
     if (isOutOfStock) return;
-    addToCart(product, 1);
+    addToCart(rawProduct, 1);
     
-    // Optional: show a small toast or visual feedback here
-    alert('تم إضافة المنتج للسلة بنجاح!');
+    alert(locale === 'en' ? 'Product added to cart!' : 'تم إضافة المنتج للسلة بنجاح!');
   };
 
   return (
     <div className={`${styles.productCard} ${isOutOfStock ? styles.outOfStockCard : ''}`}>
-      <Link href={`/products/${createProductSlug(product.name, product.id)}`} className={styles.productImageWrapper}>
+      <Link href={`/products/${createProductSlug(rawProduct.name, product.id)}`} className={styles.productImageWrapper}>
         <img src={product.image} alt={product.name} className={`${styles.productImage} ${isOutOfStock ? styles.dimmedImage : ''}`} />
         
         {isOutOfStock ? (
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'rgba(0,0,0,0.7)', color: 'white', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold', fontSize: '1.2rem', zIndex: 10, whiteSpace: 'nowrap' }}>
-            نفذت الكمية
+            {t('common.outOfStock')}
           </div>
         ) : calculatedDiscount ? (
           <div className={styles.discountBadge}>
-            خصم {calculatedDiscount}%
+            {locale === 'en' ? `${calculatedDiscount}% OFF` : `خصم ${calculatedDiscount}%`}
           </div>
         ) : null}
 
@@ -53,24 +55,24 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
       <div className={styles.productInfo}>
         <div className={styles.productCategory}>{product.category}</div>
-        <Link href={`/products/${createProductSlug(product.name, product.id)}`}>
+        <Link href={`/products/${createProductSlug(rawProduct.name, product.id)}`}>
           <h3 className={styles.productName}>{product.name}</h3>
         </Link>
         <div className={styles.productBottom}>
           <div className={styles.priceContainer}>
-            <span className={styles.productPrice}>{formatPrice(product.price)}</span>
+            <span className={styles.productPrice}>{formatPrice(product.price, locale)}</span>
             {product.original_price && (
-              <span className={styles.originalPrice}>{formatPrice(product.original_price)}</span>
+              <span className={styles.originalPrice}>{formatPrice(product.original_price, locale)}</span>
             )}
           </div>
           <div className={styles.actionsContainer}>
-            <Link href={`/products/${createProductSlug(product.name, product.id)}`} className={styles.detailsBtn}>
-              التفاصيل
+            <Link href={`/products/${createProductSlug(rawProduct.name, product.id)}`} className={styles.detailsBtn}>
+              {locale === 'en' ? 'Details' : 'التفاصيل'}
             </Link>
             <button 
               onClick={handleAddToCart} 
               className={styles.addToCartBtn} 
-              aria-label="أضف للسلة"
+              aria-label={t('product.addToCart')}
               disabled={isOutOfStock}
               style={{ opacity: isOutOfStock ? 0.5 : 1, cursor: isOutOfStock ? 'not-allowed' : 'pointer' }}
             >

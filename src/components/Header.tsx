@@ -3,14 +3,15 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import { useLanguage } from '../context/LanguageContext';
 import WishlistHeaderLink from './WishlistHeaderLink';
-
 import AnnouncementBar from './AnnouncementBar';
-
+import LanguageSwitcher from './LanguageSwitcher';
 import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const { totalItems } = useCart();
+  const { t, isRTL } = useLanguage();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -32,16 +33,17 @@ export default function Header() {
           <img src="/logo.png" alt="Yuri Glow" style={{ maxHeight: '50px', width: 'auto', objectFit: 'contain' }} />
         </Link>
         <nav className="main-nav">
-          <Link href="/">الرئيسية</Link>
-          <Link href="/products">المنتجات</Link>
-          <Link href="/track">تتبع طلبك</Link>
-          <Link href="/about">من نحن</Link>
-          <Link href="/contact">اتصل بنا</Link>
+          <Link href="/">{t('nav.home')}</Link>
+          <Link href="/products">{t('nav.products')}</Link>
+          <Link href="/track">{t('nav.track')}</Link>
+          <Link href="/about">{t('nav.about')}</Link>
+          <Link href="/contact">{t('nav.contact')}</Link>
         </nav>
 
-        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <LanguageSwitcher />
           <WishlistHeaderLink />
-          <Link href="/cart" className="cart-btn" aria-label="سلة المشتريات">
+          <Link href="/cart" className="cart-btn" aria-label={t('nav.cart')}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
@@ -52,7 +54,7 @@ export default function Header() {
                 <span style={{
                   position: 'absolute',
                   top: '-8px',
-                  right: '-12px',
+                  ...(isRTL ? { right: '-12px' } : { left: '16px' }),
                   backgroundColor: 'var(--color-primary)',
                   color: 'white',
                   borderRadius: '50%',

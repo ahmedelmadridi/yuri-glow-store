@@ -1,6 +1,7 @@
 'use client';
 
 import { useWishlist } from '@/hooks/useWishlist';
+import { useLanguage } from '@/context/LanguageContext';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/data/products';
 import Link from 'next/link';
@@ -11,19 +12,20 @@ interface WishlistClientProps {
 
 export default function WishlistClient({ allProducts }: WishlistClientProps) {
   const { wishlist } = useWishlist();
+  const { t } = useLanguage();
 
   const wishlistProducts = allProducts.filter(p => wishlist.includes(p.id));
 
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)', minHeight: '60vh' }}>
       <h1 style={{ color: 'var(--color-primary-dark)', marginBottom: 'var(--spacing-xl)', textAlign: 'center', fontSize: '2.5rem' }}>
-        قائمة المفضلة ❤️
+        {t('wishlist.title')}
       </h1>
 
       {wishlistProducts.length === 0 ? (
         <div style={{ textAlign: 'center', marginTop: 'var(--spacing-2xl)' }}>
           <p style={{ fontSize: '1.2rem', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-lg)' }}>
-            قائمة المفضلة لديك فارغة حالياً.
+            {t('wishlist.emptySubtitle')}
           </p>
           <Link href="/products" style={{ 
             display: 'inline-block', 
@@ -34,7 +36,7 @@ export default function WishlistClient({ allProducts }: WishlistClientProps) {
             textDecoration: 'none',
             fontWeight: 'bold'
           }}>
-            تصفح المنتجات
+            {t('wishlist.browseProducts')}
           </Link>
         </div>
       ) : (

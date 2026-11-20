@@ -72,8 +72,11 @@ function AnnouncementItem({
   );
 }
 
+import { useLanguage } from '@/context/LanguageContext';
+
 export default function AnnouncementBar() {
-  const [messages, setMessages] = useState<string[]>(['🚚 شحن مجاني لأي طلب يتخطى 3000 ج.م (بدون استخدام كود خصم)']);
+  const { t, locale } = useLanguage();
+  const [messages, setMessages] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -87,16 +90,21 @@ export default function AnnouncementBar() {
     fetchAnnouncements();
   }, []);
 
+  const effectiveMessages = messages.length > 0 
+    ? messages 
+    : [t('announcement.defaultText')];
+
+
   useEffect(() => {
-    if (messages.length <= 1) return;
+    if (effectiveMessages.length <= 1) return;
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev === messages.length - 1 ? 0 : prev + 1));
+      setCurrentIndex((prev) => (prev === effectiveMessages.length - 1 ? 0 : prev + 1));
     }, 5000); // 5 seconds
     
     return () => clearInterval(interval);
-  }, [messages]);
+  }, [effectiveMessages]);
 
-  if (messages.length === 0) return null;
+  if (effectiveMessages.length === 0) return null;
 
   return (
     <div style={{ 
@@ -114,12 +122,12 @@ export default function AnnouncementBar() {
       maxWidth: '100%',
       boxSizing: 'border-box'
     }}>
-      {messages.map((msg, idx) => (
+      {effectiveMessages.map((msg, idx) => (
         <AnnouncementItem
           key={idx}
           text={msg}
           isActive={idx === currentIndex}
-          isAbsolute={messages.length > 1}
+          isAbsolute={effectiveMessages.length > 1}
         />
       ))}
     </div>

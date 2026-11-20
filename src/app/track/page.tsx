@@ -4,9 +4,11 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { trackOrder } from '@/app/actions/track';
 import { formatPrice } from '@/utils/format';
+import { useLanguage } from '@/context/LanguageContext';
 
 function TrackOrderContent() {
   const searchParams = useSearchParams();
+  const { t, locale, isRTL } = useLanguage();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +25,7 @@ function TrackOrderContent() {
     const result = await trackOrder(trimmed);
 
     if (result.error) {
-      setError(result.error);
+      setError(locale === 'en' ? 'No order found matching this information. Please double-check.' : result.error);
     } else if (result.orders) {
       setOrders(result.orders);
     }
@@ -47,11 +49,11 @@ function TrackOrderContent() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return '⏳ قيد المراجعة';
-      case 'confirmed': return '📞 تم التأكيد';
-      case 'shipped': return '🚚 تم الشحن';
-      case 'delivered': return '✅ تم التوصيل';
-      case 'cancelled': return '❌ ملغي';
+      case 'pending': return t('track.statusPending');
+      case 'confirmed': return t('track.statusConfirmed');
+      case 'shipped': return t('track.statusShipped');
+      case 'delivered': return t('track.statusDelivered');
+      case 'cancelled': return t('track.statusCancelled');
       default: return status;
     }
   };
@@ -70,16 +72,16 @@ function TrackOrderContent() {
   return (
     <div style={{ maxWidth: '640px', margin: '0 auto' }}>
       <h1 style={{ textAlign: 'center', marginBottom: 'var(--spacing-md)', color: 'var(--color-primary-dark)' }}>
-        تتبع طلبك 📦
+        {t('track.title')} 📦
       </h1>
       <p style={{ textAlign: 'center', marginBottom: 'var(--spacing-xl)', color: 'var(--color-text-light)', lineHeight: '1.7' }}>
-        أدخل <strong>كود الطلب</strong> (مثل: <code>#A1B2C3D4</code>) أو <strong>رقم الهاتف</strong> الذي قمت باستخدامه أثناء الطلب لمعرفة حالة طلبك الحالية.
+        {t('track.subtitle')}
       </p>
 
       <form onSubmit={handleTrack} style={{ display: 'flex', gap: '10px', marginBottom: 'var(--spacing-2xl)' }}>
         <input 
           type="text" 
-          placeholder="أدخل كود الطلب (مثال: #A1B2C3D4) أو رقم الهاتف"
+          placeholder={t('track.inputPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           required
@@ -90,7 +92,7 @@ function TrackOrderContent() {
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--border-radius)',
             fontSize: '1rem',
-            textAlign: 'right',
+            textAlign: isRTL ? 'right' : 'left',
             outline: 'none'
           }}
         />
@@ -110,7 +112,7 @@ function TrackOrderContent() {
             transition: 'background-color 0.2s'
           }}
         >
-          {loading ? 'جاري البحث...' : 'تتبع'}
+          {loading ? t('track.searching') : (locale === 'en' ? 'Track' : 'تتبع')}
         </button>
       </form>
 
@@ -123,7 +125,7 @@ function TrackOrderContent() {
       {orders && orders.length > 0 && (
         <div>
           <h3 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--color-primary-dark)' }}>
-            نتائج البحث ({orders.length})
+            {locale === 'en' ? `Search Results (${orders.length})` : `نتائج البحث (${orders.length})`}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
             {orders.map((order) => {
@@ -153,7 +155,7 @@ function TrackOrderContent() {
                         #{shortCode}
                       </span>
                       <span style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
-                        {new Date(order.created_at).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {new Date(order.created_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </span>
                     </div>
 
@@ -178,8 +180,8 @@ function TrackOrderContent() {
                   </ul>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', paddingTop: '8px', borderTop: '1px solid #eee' }}>
-                    <span>الإجمالي:</span>
-                    <span style={{ color: 'var(--color-primary-dark)' }}>{formatPrice(order.total_amount)}</span>
+                    <span>{t('track.total')}</span>
+                    <span style={{ color: 'var(--color-primary-dark)' }}>{formatPrice(order.total_amount, locale)}</span>
                   </div>
                 </div>
               );
@@ -192,9 +194,10 @@ function TrackOrderContent() {
 }
 
 export default function TrackOrderPage() {
+  const { t } = useLanguage();
   return (
     <div className="container" style={{ padding: 'var(--spacing-3xl) var(--spacing-md)', minHeight: '60vh' }}>
-      <Suspense fallback={<div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)' }}>جاري التحميل...</div>}>
+      <Suspense fallback={<div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)' }}>{t('common.loading')}</div>}>
         <TrackOrderContent />
       </Suspense>
     </div>

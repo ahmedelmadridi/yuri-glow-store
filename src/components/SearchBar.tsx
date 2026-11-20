@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getProducts, Product } from '@/data/products';
+import { getProducts, Product, getLocalizedProduct } from '@/data/products';
 import { createProductSlug } from '@/utils/slug';
 import { formatPrice } from '@/utils/format';
+import { useLanguage } from '@/context/LanguageContext';
 import Link from 'next/link';
 import { trackSearchQuery } from '@/app/actions/track';
 
@@ -12,6 +13,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
+  const { t, locale } = useLanguage();
   
   const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Product[]>([]);
@@ -74,7 +76,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
               setShowDropdown(true);
             }
           }}
-          placeholder="ابحث عن منتج..."
+          placeholder={t('search.placeholder')}
           style={{
             flex: 1,
             minWidth: 0,
@@ -97,7 +99,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
             fontWeight: 'bold',
           }}
         >
-          بحث
+          {locale === 'en' ? 'Search' : 'بحث'}
         </button>
       </form>
 
@@ -118,57 +120,60 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
         }}>
           {isSearching ? (
             <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-light)' }}>
-              جاري البحث...
+              {t('track.searching')}
             </div>
           ) : results.length > 0 ? (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {results.map((product) => (
-                <li key={product.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                  <Link 
-                    href={`/products/${createProductSlug(product.name, product.id)}`}
-                    onClick={() => {
-                      setShowDropdown(false);
-                      if (query.trim()) {
-                        trackSearchQuery(query.trim()).catch(console.error);
-                      }
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '12px',
-                      textDecoration: 'none',
-                      color: 'var(--color-text)',
-                      gap: '12px',
-                      transition: 'background-color 0.2s',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} 
-                    />
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ fontWeight: '500', fontSize: '0.95rem', lineHeight: '1.2' }}>{product.name}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                          {formatPrice(product.price)}
-                        </span>
-                        {product.original_price && (
-                          <span style={{ color: '#95a5a6', textDecoration: 'line-through', fontSize: '0.8rem' }}>
-                            {formatPrice(product.original_price)}
+              {results.map((rawProduct) => {
+                const product = getLocalizedProduct(rawProduct, locale);
+                return (
+                  <li key={product.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                    <Link 
+                      href={`/products/${createProductSlug(rawProduct.name, product.id)}`}
+                      onClick={() => {
+                        setShowDropdown(false);
+                        if (query.trim()) {
+                          trackSearchQuery(query.trim()).catch(console.error);
+                        }
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '12px',
+                        textDecoration: 'none',
+                        color: 'var(--color-text)',
+                        gap: '12px',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <img 
+                        src={product.image} 
+                        alt={product.name} 
+                        style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} 
+                      />
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ fontWeight: '500', fontSize: '0.95rem', lineHeight: '1.2' }}>{product.name}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: 'var(--color-primary)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                            {formatPrice(product.price, locale)}
                           </span>
-                        )}
+                          {product.original_price && (
+                            <span style={{ color: '#95a5a6', textDecoration: 'line-through', fontSize: '0.8rem' }}>
+                              {formatPrice(product.original_price, locale)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-light)' }}>
-              لا توجد نتائج لـ "{query}"
+              {t('search.noResults')}
             </div>
           )}
         </div>
