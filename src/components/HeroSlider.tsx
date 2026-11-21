@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import styles from '../app/page.module.css';
 
 interface HeroSliderProps {
@@ -23,14 +22,12 @@ export default function HeroSlider({ images }: HeroSliderProps) {
 
   if (!images || images.length === 0) {
     return (
-      <a href="/products" style={{ display: 'block', width: '100%', height: '100%', position: 'relative' }}>
-        <Image 
+      <a href="/products" style={{ display: 'block', width: '100%', height: '100%' }}>
+        <img 
           src="/hero.jpg" 
           alt="مجموعة العناية بالبشرة الكورية" 
-          fill
-          priority
-          sizes="100vw"
-          style={{ objectFit: 'cover' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          loading="eager"
         />
       </a>
     );
@@ -54,14 +51,12 @@ export default function HeroSlider({ images }: HeroSliderProps) {
             display: 'block'
           }}
         >
-          <Image 
+          <img 
             src={img} 
             alt={`Slider image ${idx + 1}`} 
-            fill
-            priority={idx === 0}
-            sizes="100vw"
-            unoptimized={img.startsWith('http') && !img.includes('supabase.co')}
-            style={{ objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+            decoding={idx === 0 ? 'sync' : 'async'}
           />
         </a>
       ))}
