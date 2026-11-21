@@ -5,6 +5,7 @@ export interface SkinConcern {
   subtitle: string;
   subtitle_en: string;
   icon: string;
+  image: string;
   accentColor: string;
   bgGradient: string;
   productIds: number[];
@@ -18,6 +19,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'تنقية المسام، تجفيف البثور ومكافحة الرؤوس السوداء',
     subtitle_en: 'Purify pores, clear blemishes & target blackheads',
     icon: 'acne',
+    image: '/concerns/acne.jpg',
     accentColor: '#4A7C59',
     bgGradient: 'linear-gradient(135deg, #F0F7F2 0%, #E2EFE5 100%)',
     productIds: [18, 20, 27, 28, 29, 41, 42, 58, 61, 65, 69, 81, 9]
@@ -29,6 +31,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'تضييق المسام، توازن الإفرازات الدهنية وتنعيم الملمس',
     subtitle_en: 'Tighten pores, control excess oil & refine skin texture',
     icon: 'pores',
+    image: '/concerns/pores.jpg',
     accentColor: '#3B7A8C',
     bgGradient: 'linear-gradient(135deg, #EFF6F8 0%, #DFEEF2 100%)',
     productIds: [10, 15, 16, 17, 18, 20, 22, 23, 27, 43, 47, 61, 69, 70, 72, 81]
@@ -40,6 +43,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'تفتيح البقع الداكنة، توحيد اللون واستعادة الإشراقة',
     subtitle_en: 'Fade dark spots, even skin tone & boost radiance',
     icon: 'sparkle',
+    image: '/concerns/pigmentation.jpg',
     accentColor: '#C88D37',
     bgGradient: 'linear-gradient(135deg, #FAF4EB 0%, #F5E8D4 100%)',
     productIds: [1, 2, 15, 16, 17, 18, 21, 22, 23, 24, 25, 43, 48, 49, 53, 56, 68, 71, 72, 74]
@@ -51,6 +55,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'ترطيب عميق، تقوية حاجز البشرة وحمايتها من التلف',
     subtitle_en: 'Deep hydration, repair moisture barrier & lock in softness',
     icon: 'drop',
+    image: '/concerns/barrier.jpg',
     accentColor: '#4A6FA5',
     bgGradient: 'linear-gradient(135deg, #F1F4FA 0%, #E3EAF6 100%)',
     productIds: [5, 6, 14, 19, 31, 35, 37, 39, 51, 52, 55, 57, 62, 63, 64, 70, 76, 77, 79, 80]
@@ -62,6 +67,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'تسكين الالتهابات، تخفيف الاحمرار والعناية بالبشرة المتهيجة',
     subtitle_en: 'Calm irritation, relieve redness & soothe sensitive skin',
     icon: 'leaf',
+    image: '/concerns/soothing.jpg',
     accentColor: '#7A8450',
     bgGradient: 'linear-gradient(135deg, #F4F6EE 0%, #E8EDE0 100%)',
     productIds: [5, 6, 9, 10, 34, 35, 37, 44, 54, 57, 64, 69, 77, 80]
@@ -73,6 +79,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'تحفيز الكولاجين، تحسين المرونة وملء الخطوط الدقيقة',
     subtitle_en: 'Boost collagen, restore elasticity & smooth fine lines',
     icon: 'time',
+    image: '/concerns/anti-aging.jpg',
     accentColor: '#88507E',
     bgGradient: 'linear-gradient(135deg, #F6F0F5 0%, #EDE1EC 100%)',
     productIds: [3, 4, 11, 13, 14, 30, 31, 32, 33, 36, 46, 50, 51, 52, 59, 60, 62, 66, 67, 75, 79]
@@ -84,6 +91,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'تفتيح الهالات، تخفيف الانتفاخات وشد محيط العين الحساس',
     subtitle_en: 'Brighten dark circles, reduce puffiness & firm eye area',
     icon: 'eye',
+    image: '/concerns/eye.jpg',
     accentColor: '#96616B',
     bgGradient: 'linear-gradient(135deg, #F7F1F2 0%, #EFE3E5 100%)',
     productIds: [1, 3, 33, 56, 60, 67]
@@ -95,6 +103,7 @@ export const SKIN_CONCERNS: SkinConcern[] = [
     subtitle: 'ترميم الشعر التالف، تقليل الهيشان وتحفيز الكثافة واللمعان',
     subtitle_en: 'Repair damaged hair, eliminate frizz & enhance shine',
     icon: 'hair',
+    image: '/concerns/hair.jpg',
     accentColor: '#9C6F44',
     bgGradient: 'linear-gradient(135deg, #F8F3EE 0%, #EFE5DB 100%)',
     productIds: [7, 8, 12, 40, 45, 73, 78]

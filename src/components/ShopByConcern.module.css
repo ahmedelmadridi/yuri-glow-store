@@ -1,12 +1,12 @@
 .container {
-  padding: var(--spacing-xl) 0 var(--spacing-3xl);
+  padding: var(--spacing-xl) 0 var(--spacing-2xl);
   position: relative;
 }
 
 .header {
   text-align: center;
-  max-width: 720px;
-  margin: 0 auto var(--spacing-2xl);
+  max-width: 600px;
+  margin: 0 auto var(--spacing-xl);
   padding: 0 var(--spacing-md);
 }
 
@@ -21,182 +21,145 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: var(--spacing-sm);
-  letter-spacing: 0.3px;
 }
 
 .title {
-  font-size: 2.25rem;
+  font-size: 2.1rem;
   color: var(--color-primary-dark);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
   font-family: var(--font-heading);
-  line-height: 1.3;
 }
 
-.subtitle {
-  font-size: 1.05rem;
-  color: var(--color-text-light);
-  line-height: 1.6;
+/* Horizontal story/avatar row with smooth scroll on mobile & neat flex wrap on desktop */
+.avatarGrid {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.5rem 1.25rem;
+  padding: 0.5rem var(--spacing-md);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-lg);
-  padding: 4px;
-}
-
-.card {
-  position: relative;
+.avatarItem {
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1.25rem;
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
+  align-items: center;
+  text-align: center;
   text-decoration: none;
+  width: 120px;
+  transition: transform 0.25s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.avatarItem:hover {
+  transform: translateY(-4px);
+}
+
+.circleWrapper {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #A88F48 0%, #DFD7B5 50%, #8C753B 100%);
+  box-shadow: 0 4px 14px rgba(168, 143, 72, 0.2);
+  margin-bottom: 0.65rem;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.avatarItem:hover .circleWrapper {
+  transform: scale(1.06);
+  box-shadow: 0 8px 22px rgba(168, 143, 72, 0.35);
+}
+
+.circleInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  position: relative;
+  background-color: #f7f6f0;
+  border: 2px solid #ffffff;
 }
 
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 28px rgba(168, 143, 72, 0.15);
-  border-color: rgba(168, 143, 72, 0.4);
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
 }
 
-.cardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
+.avatarItem:hover .avatarImage {
+  transform: scale(1.1);
 }
 
-.iconWrapper {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-}
-
-.card:hover .iconWrapper {
-  transform: scale(1.08);
-}
-
-.productCount {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--color-text-light);
-}
-
-.cardTitle {
-  font-size: 1.15rem;
+.avatarTitle {
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 0.4rem;
   line-height: 1.35;
+  margin-bottom: 0.25rem;
   font-family: var(--font-heading);
   transition: color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.7em;
 }
 
-.card:hover .cardTitle {
+.avatarItem:hover .avatarTitle {
   color: var(--color-primary-dark);
 }
 
-.cardDesc {
-  font-size: 0.85rem;
-  color: var(--color-text-light);
-  line-height: 1.5;
-  margin-bottom: 1.25rem;
-  flex-grow: 1;
-}
-
-.cardAction {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
+.itemCount {
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-primary-dark);
-  margin-top: auto;
-  transition: gap 0.2s ease;
+  background: rgba(168, 143, 72, 0.1);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
-.card:hover .cardAction {
-  gap: 10px;
-}
-
-.arrowIcon {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.2s ease;
-}
-
-/* Responsive Breakpoints */
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-md);
-  }
-}
-
+/* Mobile & Tablet Responsiveness */
 @media (max-width: 768px) {
   .title {
-    font-size: 1.75rem;
-  }
-  
-  .subtitle {
-    font-size: 0.95rem;
+    font-size: 1.6rem;
   }
 
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+  .avatarGrid {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    gap: 1rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .card {
-    padding: 1.15rem 1rem;
-    border-radius: 14px;
+  .avatarGrid::-webkit-scrollbar {
+    display: none;
   }
 
-  .iconWrapper {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
+  .avatarItem {
+    flex-shrink: 0;
+    width: 92px;
   }
 
-  .cardTitle {
-    font-size: 1rem;
+  .circleWrapper {
+    width: 80px;
+    height: 80px;
+    padding: 2.5px;
   }
 
-  .cardDesc {
-    font-size: 0.78rem;
-    margin-bottom: 0.75rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-}
-
-@media (max-width: 480px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+  .avatarTitle {
+    font-size: 0.82rem;
+    height: 2.5em;
   }
 
-  .card {
-    padding: 1rem 0.85rem;
-  }
-
-  .productCount {
-    font-size: 0.72rem;
-    padding: 2px 7px;
+  .itemCount {
+    font-size: 0.7rem;
+    padding: 1px 6px;
   }
 }

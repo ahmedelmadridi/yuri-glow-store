@@ -112,6 +112,18 @@ export default function SortableProductGrid({
                 className={`${styles.pill} ${isActive ? styles.activePill : ''}`}
                 onClick={() => handleConcernClick(concern.id)}
               >
+                {concern.image && (
+                  <img
+                    src={concern.image}
+                    alt=""
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                )}
                 <span>{concern.displayName}</span>
                 <span style={{ opacity: 0.7, fontSize: '0.8rem' }}>({count})</span>
               </button>
@@ -128,11 +140,28 @@ export default function SortableProductGrid({
               borderColor: activeConcernInfo.accentColor,
             }}
           >
-            <div>
-              <div className={styles.bannerTitle} style={{ color: activeConcernInfo.accentColor }}>
-                {t('concerns.productsFor')} {activeConcernInfo.displayName}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {activeConcernInfo.image && (
+                <img
+                  src={activeConcernInfo.image}
+                  alt=""
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <div>
+                <div className={styles.bannerTitle} style={{ color: activeConcernInfo.accentColor }}>
+                  {t('concerns.productsFor')} {activeConcernInfo.displayName}
+                </div>
+                <p className={styles.bannerDesc}>{activeConcernInfo.displaySubtitle}</p>
               </div>
-              <p className={styles.bannerDesc}>{activeConcernInfo.displaySubtitle}</p>
             </div>
             <button
               type="button"
