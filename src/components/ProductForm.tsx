@@ -8,6 +8,7 @@ import { upsertProduct } from '@/app/actions/product';
 import { translateProductFields } from '@/app/actions/translate';
 import { Product } from '@/data/products';
 import { compressImage } from '@/utils/imageCompression';
+import productTranslations from '@/data/productTranslations.json';
 
 interface ProductFormProps {
   initialData?: Product;
@@ -20,12 +21,15 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const [errorMsg, setErrorMsg] = useState('');
   const [translateSuccess, setTranslateSuccess] = useState('');
 
+  // Fallback to pre-saved translation if Supabase columns are not present
+  const existingTranslation = initialData ? (productTranslations as Record<string, any>)[initialData.id] || {} : {};
+
   // English state fields
-  const [nameEn, setNameEn] = useState(initialData?.name_en || '');
-  const [descEn, setDescEn] = useState(initialData?.description_en || '');
-  const [featuresEn, setFeaturesEn] = useState(initialData?.features_en || '');
-  const [ingredientsEn, setIngredientsEn] = useState(initialData?.ingredients_en || '');
-  const [usageEn, setUsageEn] = useState(initialData?.usage_instructions_en || '');
+  const [nameEn, setNameEn] = useState(initialData?.name_en || existingTranslation.name_en || '');
+  const [descEn, setDescEn] = useState(initialData?.description_en || existingTranslation.description_en || '');
+  const [featuresEn, setFeaturesEn] = useState(initialData?.features_en || existingTranslation.features_en || '');
+  const [ingredientsEn, setIngredientsEn] = useState(initialData?.ingredients_en || existingTranslation.ingredients_en || '');
+  const [usageEn, setUsageEn] = useState(initialData?.usage_instructions_en || existingTranslation.usage_instructions_en || '');
 
   const handleAutoTranslate = async () => {
     setIsTranslating(true);
